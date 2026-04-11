@@ -78,6 +78,11 @@
   <div id="nuclear"></div>
 </div>
 
+<div class="section">
+  <div class="title">Outcome Hexagram</div>
+  <div id="outcome"></div>
+</div>
+
 <script>
 
 let lines = [1,1,1,1,1,1];
@@ -118,10 +123,8 @@ async function loadData() {
 
 // ----------------------------
 function findHexagram(arr) {
-  const binary = getBinary(arr);
-
   return hexagramData.find(h =>
-    String(h.binary).padStart(6, "0") === binary
+    String(h.binary).padStart(6, "0") === getBinary(arr)
   );
 }
 
@@ -138,6 +141,23 @@ function getNuclear(arr) {
 }
 
 // ----------------------------
+// 🔥 OUTCOME HEXAGRAM
+// ----------------------------
+function getOutcome(arr) {
+  let result = [];
+
+  for (let i = 0; i < 6; i++) {
+    if (moving[i]) {
+      result.push(arr[i] === 1 ? 0 : 1); // flip
+    } else {
+      result.push(arr[i]);
+    }
+  }
+
+  return result;
+}
+
+// ----------------------------
 function update() {
   const hex = findHexagram(lines);
 
@@ -151,10 +171,9 @@ function update() {
 
   drawOriginal();
   drawNuclear();
+  drawOutcome();
 }
 
-// ----------------------------
-// DRAW ORIGINAL (interactive)
 // ----------------------------
 function drawOriginal() {
   const container = document.getElementById("original");
@@ -184,6 +203,7 @@ function drawOriginal() {
     left.onclick = () => {
       moving[i] = !moving[i];
       drawOriginal();
+      drawOutcome(); // update outcome instantly
     };
 
     // LINE
@@ -211,8 +231,6 @@ function drawOriginal() {
 }
 
 // ----------------------------
-// DRAW NUCLEAR (non-interactive)
-// ----------------------------
 function drawNuclear() {
   const container = document.getElementById("nuclear");
   container.innerHTML = "";
@@ -222,6 +240,37 @@ function drawNuclear() {
   for (let i = 5; i >= 0; i--) {
 
     const val = nuclear[i];
+
+    let row = document.createElement("div");
+    row.className = "row";
+
+    let left = document.createElement("div");
+    left.className = "marker";
+
+    let line = document.createElement("div");
+    line.className = "line " + (val ? "yang" : "yin");
+
+    let right = document.createElement("div");
+    right.className = "marker";
+
+    row.appendChild(left);
+    row.appendChild(line);
+    row.appendChild(right);
+
+    container.appendChild(row);
+  }
+}
+
+// ----------------------------
+function drawOutcome() {
+  const container = document.getElementById("outcome");
+  container.innerHTML = "";
+
+  const outcome = getOutcome(lines);
+
+  for (let i = 5; i >= 0; i--) {
+
+    const val = outcome[i];
 
     let row = document.createElement("div");
     row.className = "row";
