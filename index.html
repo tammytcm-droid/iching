@@ -18,8 +18,21 @@
 
     .marker {
       width: 30px;
+      text-align: center;
       cursor: pointer;
       font-weight: bold;
+      font-size: 14px;
+    }
+
+    .circle {
+      width: 16px;
+      height: 16px;
+      border-radius: 50%;
+      background: #ccc;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 11px;
     }
 
     .line {
@@ -41,25 +54,21 @@
 
 <body>
 
-<h1>I Ching (Plum Blossom)</h1>
+<h2>I Ching (Plum Blossom)</h2>
 
 <div id="hexagram"></div>
-
-<button onclick="generate()">Generate</button>
-
-<p id="result"></p>
 
 <script>
 
 // 1 = yang, 0 = yin
 let lines = [1,1,1,1,1,1];
 
-// moving lines (true/false)
+// moving lines
 let moving = [false,false,false,false,false,false];
 
-// subject & object (placeholder for now)
-let subjectLine = 2; // example
-let objectLine = 5;  // example
+// TEMP subject/object (we'll replace with real data later)
+let subjectLine = 2;
+let objectLine = 5;
 
 function draw() {
   const container = document.getElementById("hexagram");
@@ -70,17 +79,22 @@ function draw() {
     let row = document.createElement("div");
     row.className = "row";
 
-    // LEFT marker (moving line)
+    // LEFT circle (always visible)
     let left = document.createElement("div");
     left.className = "marker";
 
+    let circle = document.createElement("div");
+    circle.className = "circle";
+
     if (moving[i]) {
-      left.innerText = val ? "O" : "X"; // yang = O, yin = X
+      circle.innerText = val ? "O" : "X";
     }
+
+    left.appendChild(circle);
 
     left.onclick = () => {
       moving[i] = !moving[i];
-      draw();
+      update();
     };
 
     // LINE
@@ -89,7 +103,11 @@ function draw() {
 
     line.onclick = () => {
       lines[i] = lines[i] ? 0 : 1;
-      draw();
+
+      // IMPORTANT: reset moving marker if line changes
+      moving[i] = false;
+
+      update();
     };
 
     // RIGHT marker (subject/object)
@@ -107,16 +125,13 @@ function draw() {
   });
 }
 
-function generate() {
-  let binary = lines.join("");
+function update() {
+  draw();
 
-  let movingLines = moving
-    .map((m, i) => m ? i + 1 : null)
-    .filter(v => v !== null);
-
-  document.getElementById("result").innerText =
-    "Binary: " + binary +
-    " | Moving lines: " + movingLines.join(", ");
+  // placeholder for next steps:
+  // - detect hexagram
+  // - calculate nuclear
+  // - calculate outcome
 }
 
 draw();
