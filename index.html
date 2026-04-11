@@ -84,6 +84,7 @@
 <h2>I Ching (Plum Blossom)</h2>
 
 <button onclick="resetAll()">Reset</button>
+<button onclick="randomHexagram()">Random</button>
 
 <div class="container">
 
@@ -170,7 +171,11 @@ function getOutcome(arr) {
 
 // ----------------------------
 function setLabels(idPrefix, hex) {
-  if (!hex) return;
+  if (!hex) {
+    document.getElementById(idPrefix+"-num").innerText = "";
+    document.getElementById(idPrefix+"-eng").innerText = "";
+    return;
+  }
 
   document.getElementById(idPrefix+"-num").innerText =
     `${hex.number}. ${hex.pinyin}`;
@@ -181,9 +186,13 @@ function setLabels(idPrefix, hex) {
 
 // ----------------------------
 function update() {
+
   const orig = findHexagram(lines);
-  const nuclear = findHexagram(getNuclear(lines));
-  const outcome = findHexagram(getOutcome(lines));
+  const nuclearArr = getNuclear(lines);
+  const outcomeArr = getOutcome(lines);
+
+  const nuclear = findHexagram(nuclearArr);
+  const outcome = findHexagram(outcomeArr);
 
   if (orig) {
     subjectLine = orig.subject;
@@ -195,8 +204,8 @@ function update() {
   setLabels("out", outcome);
 
   drawOriginal();
-  drawSimple("nuclear", getNuclear(lines));
-  drawSimple("outcome", getOutcome(lines));
+  drawSimple("nuclear", nuclearArr);
+  drawSimple("outcome", outcomeArr);
 }
 
 // ----------------------------
@@ -226,8 +235,7 @@ function drawOriginal() {
 
     left.onclick = () => {
       moving[i] = !moving[i];
-      drawOriginal();
-      drawSimple("outcome", getOutcome(lines));
+      update(); // 🔥 FIX: recalc EVERYTHING
     };
 
     let line = document.createElement("div");
@@ -279,6 +287,15 @@ function drawSimple(id, arr) {
 
     container.appendChild(row);
   }
+}
+
+// ----------------------------
+// 🎲 RANDOM HEXAGRAM
+// ----------------------------
+function randomHexagram() {
+  lines = Array.from({length:6}, () => Math.random() > 0.5 ? 1 : 0);
+  moving = [false,false,false,false,false,false];
+  update();
 }
 
 // ----------------------------
