@@ -4,7 +4,10 @@
   <title>I Ching App</title>
 
   <style>
-    body { font-family: Arial; text-align: center; }
+    body {
+      font-family: Arial;
+      text-align: center;
+    }
 
     h2 { margin-top: 10px; }
 
@@ -14,10 +17,24 @@
       cursor: pointer;
     }
 
-    .section { margin-top: 20px; }
+    .container {
+      display: flex;
+      justify-content: center;
+      gap: 40px;
+      margin-top: 20px;
+    }
+
+    .hex-block {
+      text-align: center;
+      width: 180px;
+    }
 
     .title {
       font-weight: bold;
+      margin-bottom: 10px;
+    }
+
+    .subtitle {
       margin-bottom: 5px;
     }
 
@@ -25,32 +42,32 @@
       display: flex;
       justify-content: center;
       align-items: center;
-      margin: 6px;
+      margin: 5px;
     }
 
     .marker {
-      width: 30px;
+      width: 25px;
       text-align: center;
       font-weight: bold;
       cursor: pointer;
     }
 
     .circle {
-      width: 18px;
-      height: 18px;
+      width: 16px;
+      height: 16px;
       border-radius: 50%;
       background: #ccc;
       display: flex;
       align-items: center;
       justify-content: center;
-      font-size: 12px;
+      font-size: 10px;
       margin: auto;
     }
 
     .line {
-      width: 120px;
-      height: 14px;
-      margin: 0 10px;
+      width: 100px;
+      height: 12px;
+      margin: 0 6px;
       cursor: pointer;
     }
 
@@ -68,19 +85,29 @@
 
 <button onclick="resetAll()">Reset</button>
 
-<div class="section">
-  <div class="title">Original Hexagram</div>
-  <div id="original"></div>
-</div>
+<div class="container">
 
-<div class="section">
-  <div class="title">Nuclear Hexagram</div>
-  <div id="nuclear"></div>
-</div>
+  <div class="hex-block">
+    <div class="title">Original</div>
+    <div id="orig-num" class="subtitle"></div>
+    <div id="orig-eng" class="subtitle"></div>
+    <div id="original"></div>
+  </div>
 
-<div class="section">
-  <div class="title">Outcome Hexagram</div>
-  <div id="outcome"></div>
+  <div class="hex-block">
+    <div class="title">Nuclear</div>
+    <div id="nuc-num" class="subtitle"></div>
+    <div id="nuc-eng" class="subtitle"></div>
+    <div id="nuclear"></div>
+  </div>
+
+  <div class="hex-block">
+    <div class="title">Outcome</div>
+    <div id="out-num" class="subtitle"></div>
+    <div id="out-eng" class="subtitle"></div>
+    <div id="outcome"></div>
+  </div>
+
 </div>
 
 <script>
@@ -113,9 +140,10 @@ async function loadData() {
   hexagramData = rows.map(r => ({
     number: r.c[0].v,
     binary: String(r.c[1].v).padStart(6, "0"),
-    name: r.c[2].v,
+    pinyin: r.c[2].v,
     subject: Number(r.c[3].v),
-    object: Number(r.c[4].v)
+    object: Number(r.c[4].v),
+    english: r.c[5]?.v || ""
   }));
 
   update();
@@ -124,54 +152,51 @@ async function loadData() {
 // ----------------------------
 function findHexagram(arr) {
   return hexagramData.find(h =>
-    String(h.binary).padStart(6, "0") === getBinary(arr)
+    String(h.binary) === getBinary(arr)
   );
 }
 
 // ----------------------------
 function getNuclear(arr) {
-  return [
-    arr[1],
-    arr[2],
-    arr[3],
-    arr[2],
-    arr[3],
-    arr[4]
-  ];
+  return [arr[1],arr[2],arr[3],arr[2],arr[3],arr[4]];
 }
 
 // ----------------------------
-// 🔥 OUTCOME HEXAGRAM
-// ----------------------------
 function getOutcome(arr) {
-  let result = [];
+  return arr.map((v,i) =>
+    moving[i] ? (v ? 0 : 1) : v
+  );
+}
 
-  for (let i = 0; i < 6; i++) {
-    if (moving[i]) {
-      result.push(arr[i] === 1 ? 0 : 1); // flip
-    } else {
-      result.push(arr[i]);
-    }
-  }
+// ----------------------------
+function setLabels(idPrefix, hex) {
+  if (!hex) return;
 
-  return result;
+  document.getElementById(idPrefix+"-num").innerText =
+    `${hex.number}. ${hex.pinyin}`;
+
+  document.getElementById(idPrefix+"-eng").innerText =
+    hex.english;
 }
 
 // ----------------------------
 function update() {
-  const hex = findHexagram(lines);
+  const orig = findHexagram(lines);
+  const nuclear = findHexagram(getNuclear(lines));
+  const outcome = findHexagram(getOutcome(lines));
 
-  if (hex) {
-    subjectLine = hex.subject;
-    objectLine = hex.object;
-  } else {
-    subjectLine = null;
-    objectLine = null;
+  if (orig) {
+    subjectLine = orig.subject;
+    objectLine = orig.object;
   }
 
+  setLabels("orig", orig);
+  setLabels("nuc", nuclear);
+  setLabels("out", outcome);
+
   drawOriginal();
-  drawNuclear();
-  drawOutcome();
+  drawSimple("nuclear", getNuclear(lines));
+  drawSimple("outcome", getOutcome(lines));
 }
 
 // ----------------------------
@@ -187,7 +212,6 @@ function drawOriginal() {
     let row = document.createElement("div");
     row.className = "row";
 
-    // LEFT moving indicator
     let left = document.createElement("div");
     left.className = "marker";
 
@@ -195,7 +219,7 @@ function drawOriginal() {
     circle.className = "circle";
 
     if (moving[i]) {
-      circle.innerText = val === 1 ? "O" : "X";
+      circle.innerText = val ? "O" : "X";
     }
 
     left.appendChild(circle);
@@ -203,19 +227,17 @@ function drawOriginal() {
     left.onclick = () => {
       moving[i] = !moving[i];
       drawOriginal();
-      drawOutcome(); // update outcome instantly
+      drawSimple("outcome", getOutcome(lines));
     };
 
-    // LINE
     let line = document.createElement("div");
     line.className = "line " + (val ? "yang" : "yin");
 
     line.onclick = () => {
-      lines[i] = lines[i] ? 0 : 1;
+      lines[i] = val ? 0 : 1;
       update();
     };
 
-    // RIGHT subject/object
     let right = document.createElement("div");
     right.className = "marker";
 
@@ -231,46 +253,13 @@ function drawOriginal() {
 }
 
 // ----------------------------
-function drawNuclear() {
-  const container = document.getElementById("nuclear");
+function drawSimple(id, arr) {
+  const container = document.getElementById(id);
   container.innerHTML = "";
-
-  const nuclear = getNuclear(lines);
 
   for (let i = 5; i >= 0; i--) {
 
-    const val = nuclear[i];
-
-    let row = document.createElement("div");
-    row.className = "row";
-
-    let left = document.createElement("div");
-    left.className = "marker";
-
-    let line = document.createElement("div");
-    line.className = "line " + (val ? "yang" : "yin");
-
-    let right = document.createElement("div");
-    right.className = "marker";
-
-    row.appendChild(left);
-    row.appendChild(line);
-    row.appendChild(right);
-
-    container.appendChild(row);
-  }
-}
-
-// ----------------------------
-function drawOutcome() {
-  const container = document.getElementById("outcome");
-  container.innerHTML = "";
-
-  const outcome = getOutcome(lines);
-
-  for (let i = 5; i >= 0; i--) {
-
-    const val = outcome[i];
+    const val = arr[i];
 
     let row = document.createElement("div");
     row.className = "row";
@@ -300,7 +289,6 @@ function resetAll() {
 }
 
 // ----------------------------
-drawOriginal();
 loadData();
 
 </script>
