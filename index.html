@@ -31,11 +31,11 @@
 
     .title {
       font-weight: bold;
-      margin-bottom: 10px;
+      margin-bottom: 12px;
     }
 
     .subtitle {
-      margin-bottom: 5px;
+      margin-bottom: 6px;
     }
 
     .row {
@@ -76,6 +76,10 @@
     .yin {
       background: linear-gradient(to right, black 40%, white 40%, white 60%, black 60%);
     }
+
+    .radio {
+      margin-top: 10px;
+    }
   </style>
 </head>
 
@@ -93,6 +97,9 @@
     <div id="orig-num" class="subtitle"></div>
     <div id="orig-eng" class="subtitle"></div>
     <div id="original"></div>
+    <div class="radio">
+      <input type="radio" name="hex-select" value="original">
+    </div>
   </div>
 
   <div class="hex-block">
@@ -100,6 +107,9 @@
     <div id="nuc-num" class="subtitle"></div>
     <div id="nuc-eng" class="subtitle"></div>
     <div id="nuclear"></div>
+    <div class="radio">
+      <input type="radio" name="hex-select" value="nuclear">
+    </div>
   </div>
 
   <div class="hex-block">
@@ -107,6 +117,9 @@
     <div id="out-num" class="subtitle"></div>
     <div id="out-eng" class="subtitle"></div>
     <div id="outcome"></div>
+    <div class="radio">
+      <input type="radio" name="hex-select" value="outcome">
+    </div>
   </div>
 
 </div>
@@ -144,7 +157,8 @@ async function loadData() {
     pinyin: r.c[2].v,
     subject: Number(r.c[3].v),
     object: Number(r.c[4].v),
-    english: r.c[5]?.v || ""
+    english: r.c[5]?.v || "",
+    chinese: r.c[6]?.v || ""
   }));
 
   update();
@@ -178,7 +192,7 @@ function setLabels(idPrefix, hex) {
   }
 
   document.getElementById(idPrefix+"-num").innerText =
-    `${hex.number}. ${hex.pinyin}`;
+    `${hex.number} ${hex.chinese} ${hex.pinyin}`;
 
   document.getElementById(idPrefix+"-eng").innerText =
     hex.english;
@@ -235,7 +249,7 @@ function drawOriginal() {
 
     left.onclick = () => {
       moving[i] = !moving[i];
-      update(); // 🔥 FIX: recalc EVERYTHING
+      update();
     };
 
     let line = document.createElement("div");
@@ -289,8 +303,6 @@ function drawSimple(id, arr) {
   }
 }
 
-// ----------------------------
-// 🎲 RANDOM HEXAGRAM
 // ----------------------------
 function randomHexagram() {
   lines = Array.from({length:6}, () => Math.random() > 0.5 ? 1 : 0);
