@@ -27,7 +27,7 @@
 
     .hex-block {
       text-align: center;
-      width: 180px;
+      width: 200px;
     }
 
     .title {
@@ -39,19 +39,22 @@
       margin-bottom: 6px;
     }
 
+    /* 🔥 PERFECT ALIGNMENT */
     .row {
       display: flex;
       justify-content: center;
       align-items: center;
-      height: 22px;
+      height: 24px;
       margin: 6px 0;
     }
 
     .marker {
-      width: 25px;
+      width: 30px;
       text-align: center;
       font-weight: bold;
-      cursor: pointer;
+      display: flex;
+      justify-content: center;
+      align-items: center;
     }
 
     .circle {
@@ -63,11 +66,10 @@
       align-items: center;
       justify-content: center;
       font-size: 10px;
-      margin: auto;
     }
 
     .line {
-      width: 100px;
+      width: 110px;
       height: 12px;
       margin: 0 6px;
       cursor: pointer;
@@ -99,24 +101,26 @@
 
     /* 🔥 TRIGRAM COLUMN */
     .trigram-block {
-      width: 160px;
+      width: 180px;
       display: flex;
       flex-direction: column;
       align-items: center;
     }
 
+    /* 🔥 BIGGER TRIGRAMS */
     .trigram {
-      margin: 10px 0;
+      font-size: 28px;
       font-weight: bold;
+      margin-bottom: 6px;
     }
 
     .top-trigram {
       margin-top: 10px;
-      margin-bottom: 20px;
+      margin-bottom: 30px;
     }
 
     .bottom-trigram {
-      margin-top: 30px;
+      margin-top: 40px;
     }
 
   </style>
@@ -139,20 +143,18 @@
     <div id="original"></div>
     <div id="orig-tags" class="tags"></div>
     <div class="radio">
-      <input type="radio" name="hex-select" value="original">
+      <input type="radio" name="hex-select">
     </div>
   </div>
 
-  <!-- 🔥 NEW TRIGRAM COLUMN -->
+  <!-- TRIGRAMS -->
   <div class="trigram-block">
 
-    <!-- TOP -->
     <div class="top-trigram">
       <div id="top-trigram" class="trigram"></div>
       <div id="top-tags" class="tags"></div>
     </div>
 
-    <!-- BOTTOM -->
     <div class="bottom-trigram">
       <div id="bottom-trigram" class="trigram"></div>
       <div id="bottom-tags" class="tags"></div>
@@ -168,7 +170,7 @@
     <div id="nuclear"></div>
     <div id="nuc-tags" class="tags"></div>
     <div class="radio">
-      <input type="radio" name="hex-select" value="nuclear">
+      <input type="radio" name="hex-select">
     </div>
   </div>
 
@@ -180,7 +182,7 @@
     <div id="outcome"></div>
     <div id="out-tags" class="tags"></div>
     <div class="radio">
-      <input type="radio" name="hex-select" value="outcome">
+      <input type="radio" name="hex-select">
     </div>
   </div>
 
@@ -198,18 +200,14 @@ const SHEET_ID = "1eYJ26LpAL3XV9l95-6r4nEvR3m_ksITatkMH4eKxlN4";
 
 let hexagramData = [];
 
-// ----------------------------
 function getBinary(arr) {
   return arr.join("");
 }
 
-// ----------------------------
 async function loadData() {
   const url = `https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq?tqx=out:json`;
-
   const res = await fetch(url);
   const text = await res.text();
-
   const json = JSON.parse(text.substr(47).slice(0, -2));
   const rows = json.table.rows;
 
@@ -231,43 +229,42 @@ async function loadData() {
   update();
 }
 
-// ----------------------------
 function findHexagram(arr) {
-  return hexagramData.find(h =>
-    String(h.binary) === getBinary(arr)
-  );
+  return hexagramData.find(h => h.binary === getBinary(arr));
 }
 
-// ----------------------------
 function getNuclear(arr) {
   return [arr[1],arr[2],arr[3],arr[2],arr[3],arr[4]];
 }
 
-// ----------------------------
 function getOutcome(arr) {
-  return arr.map((v,i) =>
-    moving[i] ? (v ? 0 : 1) : v
-  );
+  return arr.map((v,i) => moving[i] ? (v ? 0 : 1) : v);
 }
 
-// ----------------------------
-function renderTags(containerId, text) {
-  const container = document.getElementById(containerId);
-  container.innerHTML = "";
-
+function renderTags(id, text) {
+  const c = document.getElementById(id);
+  c.innerHTML = "";
   if (!text) return;
 
   text.split(",").forEach(t => {
     let tag = document.createElement("span");
     tag.className = "tag";
     tag.innerText = t.trim();
-    container.appendChild(tag);
+    c.appendChild(tag);
   });
 }
 
-// ----------------------------
-function update() {
+function setLabels(id, hex) {
+  if (!hex) return;
 
+  document.getElementById(id+"-num").innerText =
+    `${hex.number} ${hex.chinese} ${hex.pinyin}`;
+  document.getElementById(id+"-eng").innerText = hex.english;
+
+  renderTags(id+"-tags", hex.meridians);
+}
+
+function update() {
   const orig = findHexagram(lines);
   const nuclearArr = getNuclear(lines);
   const outcomeArr = getOutcome(lines);
@@ -279,7 +276,6 @@ function update() {
     subjectLine = orig.subject;
     objectLine = orig.object;
 
-    // 🔥 TRIGRAMS
     document.getElementById("top-trigram").innerText = orig.topTrigram;
     document.getElementById("bottom-trigram").innerText = orig.bottomTrigram;
 
@@ -296,90 +292,72 @@ function update() {
   drawSimple("outcome", outcomeArr);
 }
 
-// ----------------------------
-function setLabels(idPrefix, hex) {
-  if (!hex) return;
-
-  document.getElementById(idPrefix+"-num").innerText =
-    `${hex.number} ${hex.chinese} ${hex.pinyin}`;
-
-  document.getElementById(idPrefix+"-eng").innerText =
-    hex.english;
-
-  renderTags(idPrefix+"-tags", hex.meridians);
-}
-
-// ----------------------------
 function drawOriginal() {
-  const container = document.getElementById("original");
-  container.innerHTML = "";
+  const c = document.getElementById("original");
+  c.innerHTML = "";
 
   for (let i = 5; i >= 0; i--) {
-
-    const val = lines[i];
-    const lineNumber = i + 1;
-
     let row = document.createElement("div");
     row.className = "row";
 
     let left = document.createElement("div");
+    left.className = "marker";
+
     let circle = document.createElement("div");
     circle.className = "circle";
-
-    if (moving[i]) circle.innerText = val ? "O" : "X";
+    if (moving[i]) circle.innerText = lines[i] ? "O" : "X";
 
     left.appendChild(circle);
     left.onclick = () => { moving[i] = !moving[i]; update(); };
 
     let line = document.createElement("div");
-    line.className = "line " + (val ? "yang" : "yin");
-    line.onclick = () => { lines[i] = val ? 0 : 1; update(); };
+    line.className = "line " + (lines[i] ? "yang" : "yin");
+    line.onclick = () => { lines[i] = lines[i] ? 0 : 1; update(); };
 
     let right = document.createElement("div");
-
-    if (lineNumber === subjectLine) right.innerText = "S";
-    if (lineNumber === objectLine) right.innerText = "O";
+    right.className = "marker";
+    if (i+1 === subjectLine) right.innerText = "S";
+    if (i+1 === objectLine) right.innerText = "O";
 
     row.append(left, line, right);
-    container.appendChild(row);
+    c.appendChild(row);
   }
 }
 
-// ----------------------------
 function drawSimple(id, arr) {
-  const container = document.getElementById(id);
-  container.innerHTML = "";
+  const c = document.getElementById(id);
+  c.innerHTML = "";
 
   for (let i = 5; i >= 0; i--) {
     let row = document.createElement("div");
     row.className = "row";
 
+    let left = document.createElement("div");
+    left.className = "marker";
+
     let line = document.createElement("div");
     line.className = "line " + (arr[i] ? "yang" : "yin");
 
-    row.appendChild(document.createElement("div"));
-    row.appendChild(line);
-    row.appendChild(document.createElement("div"));
+    let right = document.createElement("div");
+    right.className = "marker";
 
-    container.appendChild(row);
+    row.append(left, line, right);
+    c.appendChild(row);
   }
 }
 
-// ----------------------------
 function randomHexagram() {
   lines = Array.from({length:6}, () => Math.random() > 0.5 ? 1 : 0);
   moving = Array.from({length:6}, () => Math.random() > 0.5);
   update();
 }
 
-// ----------------------------
 function resetAll() {
   lines = [1,1,1,1,1,1];
   moving = [false,false,false,false,false,false];
   update();
 }
 
-// ----------------------------
 loadData();
 
 </script>
