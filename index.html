@@ -79,20 +79,21 @@ let moving = [false,false,false,false,false,false];
 let subjectLine = null;
 let objectLine = null;
 
-// 🔥 YOUR GOOGLE SHEET ID ONLY (not full URL)
 const SHEET_ID = "1eYJ26LpAL3XV9l95-6r4nEvR3m_ksITatkMH4eKxlN4";
 
 let hexagramData = [];
 
 // ----------------------------
-// GET BINARY STRING
+// BOTTOM → TOP FIX
+// index 0 = bottom line (line 1)
+// index 5 = top line (line 6)
 // ----------------------------
 function getBinary() {
   return lines.join("");
 }
 
 // ----------------------------
-// LOAD GOOGLE SHEET DATA
+// LOAD SHEET
 // ----------------------------
 async function loadData() {
   const url = `https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq?tqx=out:json`;
@@ -115,7 +116,7 @@ async function loadData() {
 }
 
 // ----------------------------
-// FIND MATCHING HEXAGRAM
+// FIND HEXAGRAM
 // ----------------------------
 function findHexagram() {
   const binary = getBinary();
@@ -126,7 +127,7 @@ function findHexagram() {
 }
 
 // ----------------------------
-// CORE UPDATE ENGINE
+// UPDATE LOGIC
 // ----------------------------
 function update() {
   const hex = findHexagram();
@@ -143,13 +144,17 @@ function update() {
 }
 
 // ----------------------------
-// DRAW HEXAGRAM
+// DRAW UI (FIXED INDEXING)
 // ----------------------------
 function draw() {
   const container = document.getElementById("hexagram");
   container.innerHTML = "";
 
   lines.forEach((val, i) => {
+
+    // IMPORTANT FIX:
+    // convert array index → human line number
+    const lineNumber = i + 1; // 1 (bottom) → 6 (top)
 
     let row = document.createElement("div");
     row.className = "row";
@@ -171,24 +176,24 @@ function draw() {
 
     left.onclick = () => {
       moving[i] = !moving[i];
-      draw(); // moving does NOT affect hexagram logic
+      draw();
     };
 
-    // LINE (changes hexagram)
+    // LINE toggle
     let line = document.createElement("div");
     line.className = "line " + (val ? "yang" : "yin");
 
     line.onclick = () => {
       lines[i] = lines[i] ? 0 : 1;
-      update(); // IMPORTANT: triggers subject/object recalculation
+      update();
     };
 
-    // RIGHT subject/object marker
+    // RIGHT subject/object (FIXED MATCHING)
     let right = document.createElement("div");
     right.className = "marker";
 
-    if (i + 1 === subjectLine) right.innerText = "S";
-    if (i + 1 === objectLine) right.innerText = "O";
+    if (lineNumber === subjectLine) right.innerText = "S";
+    if (lineNumber === objectLine) right.innerText = "O";
 
     row.appendChild(left);
     row.appendChild(line);
@@ -199,7 +204,7 @@ function draw() {
 }
 
 // ----------------------------
-// RESET ALL
+// RESET
 // ----------------------------
 function resetAll() {
   lines = [1,1,1,1,1,1];
@@ -208,7 +213,7 @@ function resetAll() {
 }
 
 // ----------------------------
-// INIT
+// START
 // ----------------------------
 draw();
 loadData();
