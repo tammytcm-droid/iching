@@ -1,11 +1,75 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>I Ching App</title>
+
+  <style>
+    body { font-family: Arial; text-align: center; }
+
+    .row {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      margin: 8px;
+    }
+
+    .marker {
+      width: 30px;
+      text-align: center;
+      cursor: pointer;
+    }
+
+    .circle {
+      width: 18px;
+      height: 18px;
+      border-radius: 50%;
+      background: #ccc;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 12px;
+      font-weight: bold;
+      margin: auto;
+    }
+
+    .line {
+      width: 120px;
+      height: 14px;
+      margin: 0 10px;
+      cursor: pointer;
+    }
+
+    .yang { background: black; }
+
+    .yin {
+      background: linear-gradient(to right, black 40%, white 40%, white 60%, black 60%);
+    }
+
+    button {
+      margin: 10px;
+      padding: 6px 12px;
+    }
+  </style>
+</head>
+
+<body>
+
+<h2>I Ching (Plum Blossom)</h2>
+
+<button onclick="resetAll()">Reset</button>
+
+<div id="hexagram"></div>
+
+<script>
+
 let lines = [1,1,1,1,1,1];
 let moving = [false,false,false,false,false,false];
 
 let subjectLine = null;
 let objectLine = null;
 
-// 🔥 PUT YOUR GOOGLE SHEET ID HERE
-const SHEET_ID = "https://docs.google.com/spreadsheets/d/1eYJ26LpAL3XV9l95-6r4nEvR3m_ksITatkMH4eKxlN4/edit?gid=1065087330#gid=1065087330";
+// ⚠️ IMPORTANT: ONLY USE THE SHEET ID, NOT FULL URL
+const SHEET_ID = "1eYJ26LpAL3XV9l95-6r4nEvR3m_ksITatkMH4eKxlN4";
 
 let hexagramData = [];
 
@@ -58,7 +122,7 @@ function draw() {
     let row = document.createElement("div");
     row.className = "row";
 
-    // LEFT moving marker
+    // LEFT marker
     let left = document.createElement("div");
     left.className = "marker";
 
@@ -76,7 +140,7 @@ function draw() {
       draw();
     };
 
-    // LINE toggle (NO reset of moving lines)
+    // LINE toggle
     let line = document.createElement("div");
     line.className = "line " + (val ? "yang" : "yin");
 
@@ -85,7 +149,7 @@ function draw() {
       draw();
     };
 
-    // RIGHT subject/object markers
+    // RIGHT marker
     let right = document.createElement("div");
     right.className = "marker";
 
@@ -100,5 +164,16 @@ function draw() {
   });
 }
 
+function resetAll() {
+  lines = [1,1,1,1,1,1];
+  moving = [false,false,false,false,false,false];
+  update();
+}
+
 draw();
 loadData();
+
+</script>
+
+</body>
+</html>
