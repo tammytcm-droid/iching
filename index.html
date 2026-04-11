@@ -20,13 +20,14 @@
     .container {
       display: flex;
       justify-content: center;
-      gap: 40px;
+      gap: 30px;
       margin-top: 20px;
+      align-items: flex-start;
     }
 
     .hex-block {
       text-align: center;
-      width: 200px;
+      width: 180px;
     }
 
     .title {
@@ -78,9 +79,8 @@
       background: linear-gradient(to right, black 40%, white 40%, white 60%, black 60%);
     }
 
-    /* 🏷 TAG STYLE */
     .tags {
-      margin-top: 10px;
+      margin-top: 8px;
       min-height: 24px;
     }
 
@@ -96,6 +96,29 @@
     .radio {
       margin-top: 10px;
     }
+
+    /* 🔥 TRIGRAM COLUMN */
+    .trigram-block {
+      width: 160px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+    }
+
+    .trigram {
+      margin: 10px 0;
+      font-weight: bold;
+    }
+
+    .top-trigram {
+      margin-top: 10px;
+      margin-bottom: 20px;
+    }
+
+    .bottom-trigram {
+      margin-top: 30px;
+    }
+
   </style>
 </head>
 
@@ -108,6 +131,7 @@
 
 <div class="container">
 
+  <!-- ORIGINAL -->
   <div class="hex-block">
     <div class="title">Original</div>
     <div id="orig-num" class="subtitle"></div>
@@ -119,6 +143,24 @@
     </div>
   </div>
 
+  <!-- 🔥 NEW TRIGRAM COLUMN -->
+  <div class="trigram-block">
+
+    <!-- TOP -->
+    <div class="top-trigram">
+      <div id="top-trigram" class="trigram"></div>
+      <div id="top-tags" class="tags"></div>
+    </div>
+
+    <!-- BOTTOM -->
+    <div class="bottom-trigram">
+      <div id="bottom-trigram" class="trigram"></div>
+      <div id="bottom-tags" class="tags"></div>
+    </div>
+
+  </div>
+
+  <!-- NUCLEAR -->
   <div class="hex-block">
     <div class="title">Nuclear</div>
     <div id="nuc-num" class="subtitle"></div>
@@ -130,6 +172,7 @@
     </div>
   </div>
 
+  <!-- OUTCOME -->
   <div class="hex-block">
     <div class="title">Outcome</div>
     <div id="out-num" class="subtitle"></div>
@@ -178,7 +221,11 @@ async function loadData() {
     object: Number(r.c[4].v),
     english: r.c[5]?.v || "",
     chinese: r.c[6]?.v || "",
-    meridians: r.c[7]?.v || ""
+    meridians: r.c[7]?.v || "",
+    topTrigram: r.c[8]?.v || "",
+    bottomTrigram: r.c[9]?.v || "",
+    topMeridians: r.c[10]?.v || "",
+    bottomMeridians: r.c[11]?.v || ""
   }));
 
   update();
@@ -204,27 +251,18 @@ function getOutcome(arr) {
 }
 
 // ----------------------------
-function setLabels(idPrefix, hex) {
-  if (!hex) return;
+function renderTags(containerId, text) {
+  const container = document.getElementById(containerId);
+  container.innerHTML = "";
 
-  document.getElementById(idPrefix+"-num").innerText =
-    `${hex.number} ${hex.chinese} ${hex.pinyin}`;
+  if (!text) return;
 
-  document.getElementById(idPrefix+"-eng").innerText =
-    hex.english;
-
-  // 🏷 TAGS
-  const tagContainer = document.getElementById(idPrefix+"-tags");
-  tagContainer.innerHTML = "";
-
-  if (hex.meridians) {
-    hex.meridians.split(",").forEach(m => {
-      let tag = document.createElement("span");
-      tag.className = "tag";
-      tag.innerText = m.trim();
-      tagContainer.appendChild(tag);
-    });
-  }
+  text.split(",").forEach(t => {
+    let tag = document.createElement("span");
+    tag.className = "tag";
+    tag.innerText = t.trim();
+    container.appendChild(tag);
+  });
 }
 
 // ----------------------------
@@ -240,6 +278,13 @@ function update() {
   if (orig) {
     subjectLine = orig.subject;
     objectLine = orig.object;
+
+    // 🔥 TRIGRAMS
+    document.getElementById("top-trigram").innerText = orig.topTrigram;
+    document.getElementById("bottom-trigram").innerText = orig.bottomTrigram;
+
+    renderTags("top-tags", orig.topMeridians);
+    renderTags("bottom-tags", orig.bottomMeridians);
   }
 
   setLabels("orig", orig);
@@ -249,6 +294,19 @@ function update() {
   drawOriginal();
   drawSimple("nuclear", nuclearArr);
   drawSimple("outcome", outcomeArr);
+}
+
+// ----------------------------
+function setLabels(idPrefix, hex) {
+  if (!hex) return;
+
+  document.getElementById(idPrefix+"-num").innerText =
+    `${hex.number} ${hex.chinese} ${hex.pinyin}`;
+
+  document.getElementById(idPrefix+"-eng").innerText =
+    hex.english;
+
+  renderTags(idPrefix+"-tags", hex.meridians);
 }
 
 // ----------------------------
@@ -265,40 +323,24 @@ function drawOriginal() {
     row.className = "row";
 
     let left = document.createElement("div");
-    left.className = "marker";
-
     let circle = document.createElement("div");
     circle.className = "circle";
 
-    if (moving[i]) {
-      circle.innerText = val ? "O" : "X";
-    }
+    if (moving[i]) circle.innerText = val ? "O" : "X";
 
     left.appendChild(circle);
-
-    left.onclick = () => {
-      moving[i] = !moving[i];
-      update();
-    };
+    left.onclick = () => { moving[i] = !moving[i]; update(); };
 
     let line = document.createElement("div");
     line.className = "line " + (val ? "yang" : "yin");
-
-    line.onclick = () => {
-      lines[i] = val ? 0 : 1;
-      update();
-    };
+    line.onclick = () => { lines[i] = val ? 0 : 1; update(); };
 
     let right = document.createElement("div");
-    right.className = "marker";
 
     if (lineNumber === subjectLine) right.innerText = "S";
     if (lineNumber === objectLine) right.innerText = "O";
 
-    row.appendChild(left);
-    row.appendChild(line);
-    row.appendChild(right);
-
+    row.append(left, line, right);
     container.appendChild(row);
   }
 }
@@ -309,24 +351,15 @@ function drawSimple(id, arr) {
   container.innerHTML = "";
 
   for (let i = 5; i >= 0; i--) {
-
-    const val = arr[i];
-
     let row = document.createElement("div");
     row.className = "row";
 
-    let left = document.createElement("div");
-    left.className = "marker";
-
     let line = document.createElement("div");
-    line.className = "line " + (val ? "yang" : "yin");
+    line.className = "line " + (arr[i] ? "yang" : "yin");
 
-    let right = document.createElement("div");
-    right.className = "marker";
-
-    row.appendChild(left);
+    row.appendChild(document.createElement("div"));
     row.appendChild(line);
-    row.appendChild(right);
+    row.appendChild(document.createElement("div"));
 
     container.appendChild(row);
   }
