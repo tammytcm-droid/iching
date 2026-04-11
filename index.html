@@ -18,6 +18,11 @@
       margin-top: 20px;
     }
 
+    .title {
+      font-weight: bold;
+      margin-bottom: 5px;
+    }
+
     .row {
       display: flex;
       justify-content: center;
@@ -29,6 +34,7 @@
       width: 30px;
       text-align: center;
       font-weight: bold;
+      cursor: pointer;
     }
 
     .circle {
@@ -54,11 +60,6 @@
 
     .yin {
       background: linear-gradient(to right, black 40%, white 40%, white 60%, black 60%);
-    }
-
-    .title {
-      margin-top: 15px;
-      font-weight: bold;
     }
   </style>
 </head>
@@ -108,170 +109,4 @@ async function loadData() {
 
   hexagramData = rows.map(r => ({
     number: r.c[0].v,
-    binary: String(r.c[1].v).padStart(6, "0"),
-    name: r.c[2].v,
-    subject: Number(r.c[3].v),
-    object: Number(r.c[4].v)
-  }));
-
-  update();
-}
-
-// ----------------------------
-function findHexagram(arr) {
-  const binary = getBinary(arr);
-
-  return hexagramData.find(h =>
-    String(h.binary).padStart(6, "0") === binary
-  );
-}
-
-// ----------------------------
-function getNuclear(arr) {
-  // Nuclear structure:
-  // 2,3,4 and 3,4,5
-  return [
-    arr[1],
-    arr[2],
-    arr[3],
-    arr[2],
-    arr[3],
-    arr[4]
-  ];
-}
-
-// ----------------------------
-function update() {
-  const hex = findHexagram(lines);
-
-  if (hex) {
-    subjectLine = Number(hex.subject);
-    objectLine = Number(hex.object);
-  } else {
-    subjectLine = null;
-    objectLine = null;
-  }
-
-  drawOriginal();
-  drawNuclear();
-}
-
-// ----------------------------
-function drawLine(container, arr) {
-
-  container.innerHTML = "";
-
-  for (let i = 5; i >= 0; i--) {
-
-    const val = arr[i];
-    const lineNumber = i + 1;
-
-    let row = document.createElement("div");
-    row.className = "row";
-
-    let left = document.createElement("div");
-    left.className = "marker";
-
-    let circle = document.createElement("div");
-    circle.className = "circle";
-
-    left.appendChild(circle);
-
-    let line = document.createElement("div");
-    line.className = "line " + (val ? "yang" : "yin");
-
-    row.appendChild(left);
-    row.appendChild(line);
-
-    container.appendChild(row);
-  }
-}
-
-// ----------------------------
-function drawOriginal() {
-  drawLine(document.getElementById("original"), lines);
-}
-
-// ----------------------------
-function drawNuclear() {
-  const nuclear = getNuclear(lines);
-  drawLine(document.getElementById("nuclear"), nuclear);
-}
-
-// ----------------------------
-function resetAll() {
-  lines = [1,1,1,1,1,1];
-  moving = [false,false,false,false,false,false];
-  update();
-}
-
-// ----------------------------
-function toggle(i) {
-  lines[i] = lines[i] ? 0 : 1;
-  update();
-}
-
-// ----------------------------
-// INTERACTIVE ORIGINAL ONLY
-// ----------------------------
-function drawInteractiveOriginal() {
-  const container = document.getElementById("original");
-  container.innerHTML = "";
-
-  for (let i = 5; i >= 0; i--) {
-
-    const val = lines[i];
-
-    let row = document.createElement("div");
-    row.className = "row";
-
-    let left = document.createElement("div");
-    let circle = document.createElement("div");
-    circle.className = "circle";
-
-    if (moving[i]) {
-      circle.innerText = val === 1 ? "O" : "X";
-    }
-
-    left.appendChild(circle);
-
-    left.onclick = () => {
-      moving[i] = !moving[i];
-      drawInteractiveOriginal();
-    };
-
-    let line = document.createElement("div");
-    line.className = "line " + (val ? "yang" : "yin");
-
-    line.onclick = () => {
-      toggle(i);
-    };
-
-    row.appendChild(left);
-    row.appendChild(line);
-
-    container.appendChild(row);
-  }
-}
-
-// ----------------------------
-function update() {
-  const hex = findHexagram(lines);
-
-  if (hex) {
-    subjectLine = Number(hex.subject);
-    objectLine = Number(hex.object);
-  }
-
-  drawInteractiveOriginal();
-  drawNuclear();
-}
-
-// ----------------------------
-drawInteractiveOriginal();
-loadData();
-
-</script>
-
-</body>
-</html>
+    binary: String(r.c[1].v).padStart(6, "
