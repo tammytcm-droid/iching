@@ -26,7 +26,7 @@
 
     .hex-block {
       text-align: center;
-      width: 180px;
+      width: 200px;
     }
 
     .title {
@@ -38,7 +38,6 @@
       margin-bottom: 6px;
     }
 
-    /* 🔥 FIXED CONSISTENT SPACING */
     .row {
       display: flex;
       justify-content: center;
@@ -79,6 +78,21 @@
       background: linear-gradient(to right, black 40%, white 40%, white 60%, black 60%);
     }
 
+    /* 🏷 TAG STYLE */
+    .tags {
+      margin-top: 10px;
+      min-height: 24px;
+    }
+
+    .tag {
+      display: inline-block;
+      background: #eee;
+      border-radius: 12px;
+      padding: 3px 8px;
+      margin: 2px;
+      font-size: 11px;
+    }
+
     .radio {
       margin-top: 10px;
     }
@@ -99,6 +113,7 @@
     <div id="orig-num" class="subtitle"></div>
     <div id="orig-eng" class="subtitle"></div>
     <div id="original"></div>
+    <div id="orig-tags" class="tags"></div>
     <div class="radio">
       <input type="radio" name="hex-select" value="original">
     </div>
@@ -109,6 +124,7 @@
     <div id="nuc-num" class="subtitle"></div>
     <div id="nuc-eng" class="subtitle"></div>
     <div id="nuclear"></div>
+    <div id="nuc-tags" class="tags"></div>
     <div class="radio">
       <input type="radio" name="hex-select" value="nuclear">
     </div>
@@ -119,6 +135,7 @@
     <div id="out-num" class="subtitle"></div>
     <div id="out-eng" class="subtitle"></div>
     <div id="outcome"></div>
+    <div id="out-tags" class="tags"></div>
     <div class="radio">
       <input type="radio" name="hex-select" value="outcome">
     </div>
@@ -160,7 +177,8 @@ async function loadData() {
     subject: Number(r.c[3].v),
     object: Number(r.c[4].v),
     english: r.c[5]?.v || "",
-    chinese: r.c[6]?.v || ""
+    chinese: r.c[6]?.v || "",
+    meridians: r.c[7]?.v || ""
   }));
 
   update();
@@ -187,17 +205,26 @@ function getOutcome(arr) {
 
 // ----------------------------
 function setLabels(idPrefix, hex) {
-  if (!hex) {
-    document.getElementById(idPrefix+"-num").innerText = "";
-    document.getElementById(idPrefix+"-eng").innerText = "";
-    return;
-  }
+  if (!hex) return;
 
   document.getElementById(idPrefix+"-num").innerText =
     `${hex.number} ${hex.chinese} ${hex.pinyin}`;
 
   document.getElementById(idPrefix+"-eng").innerText =
     hex.english;
+
+  // 🏷 TAGS
+  const tagContainer = document.getElementById(idPrefix+"-tags");
+  tagContainer.innerHTML = "";
+
+  if (hex.meridians) {
+    hex.meridians.split(",").forEach(m => {
+      let tag = document.createElement("span");
+      tag.className = "tag";
+      tag.innerText = m.trim();
+      tagContainer.appendChild(tag);
+    });
+  }
 }
 
 // ----------------------------
@@ -306,14 +333,9 @@ function drawSimple(id, arr) {
 }
 
 // ----------------------------
-// 🎲 IMPROVED RANDOM
-// ----------------------------
 function randomHexagram() {
   lines = Array.from({length:6}, () => Math.random() > 0.5 ? 1 : 0);
-
-  // random moving lines (0–6)
   moving = Array.from({length:6}, () => Math.random() > 0.5);
-
   update();
 }
 
