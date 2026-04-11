@@ -1,0 +1,127 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>I Ching App</title>
+
+  <style>
+    body {
+      font-family: Arial;
+      text-align: center;
+    }
+
+    .row {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      margin: 6px;
+    }
+
+    .marker {
+      width: 30px;
+      cursor: pointer;
+      font-weight: bold;
+    }
+
+    .line {
+      width: 120px;
+      height: 12px;
+      margin: 0 10px;
+      cursor: pointer;
+    }
+
+    .yang {
+      background: black;
+    }
+
+    .yin {
+      background: linear-gradient(to right, black 40%, white 40%, white 60%, black 60%);
+    }
+  </style>
+</head>
+
+<body>
+
+<h1>I Ching (Plum Blossom)</h1>
+
+<div id="hexagram"></div>
+
+<button onclick="generate()">Generate</button>
+
+<p id="result"></p>
+
+<script>
+
+// 1 = yang, 0 = yin
+let lines = [1,1,1,1,1,1];
+
+// moving lines (true/false)
+let moving = [false,false,false,false,false,false];
+
+// subject & object (placeholder for now)
+let subjectLine = 2; // example
+let objectLine = 5;  // example
+
+function draw() {
+  const container = document.getElementById("hexagram");
+  container.innerHTML = "";
+
+  lines.forEach((val, i) => {
+
+    let row = document.createElement("div");
+    row.className = "row";
+
+    // LEFT marker (moving line)
+    let left = document.createElement("div");
+    left.className = "marker";
+
+    if (moving[i]) {
+      left.innerText = val ? "O" : "X"; // yang = O, yin = X
+    }
+
+    left.onclick = () => {
+      moving[i] = !moving[i];
+      draw();
+    };
+
+    // LINE
+    let line = document.createElement("div");
+    line.className = "line " + (val ? "yang" : "yin");
+
+    line.onclick = () => {
+      lines[i] = lines[i] ? 0 : 1;
+      draw();
+    };
+
+    // RIGHT marker (subject/object)
+    let right = document.createElement("div");
+    right.className = "marker";
+
+    if (i + 1 === subjectLine) right.innerText = "S";
+    if (i + 1 === objectLine) right.innerText = "O";
+
+    row.appendChild(left);
+    row.appendChild(line);
+    row.appendChild(right);
+
+    container.appendChild(row);
+  });
+}
+
+function generate() {
+  let binary = lines.join("");
+
+  let movingLines = moving
+    .map((m, i) => m ? i + 1 : null)
+    .filter(v => v !== null);
+
+  document.getElementById("result").innerText =
+    "Binary: " + binary +
+    " | Moving lines: " + movingLines.join(", ");
+}
+
+draw();
+
+</script>
+
+</body>
+</html>
