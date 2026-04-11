@@ -1,83 +1,53 @@
-<!DOCTYPE html>
-<html>
-<head>
-  <title>I Ching App</title>
-
-  <style>
-    body {
-      font-family: Arial;
-      text-align: center;
-    }
-
-    button {
-      margin: 10px;
-      padding: 6px 12px;
-      font-size: 14px;
-      cursor: pointer;
-    }
-
-    .row {
-      display: flex;
-      justify-content: center;
-      align-items: center;
-      margin: 8px;
-    }
-
-    .marker {
-      width: 30px;
-      text-align: center;
-      cursor: pointer;
-    }
-
-    .circle {
-      width: 18px;
-      height: 18px;
-      border-radius: 50%;
-      background: #ccc;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      margin: auto;
-      font-size: 12px;
-      font-weight: bold;
-    }
-
-    .line {
-      width: 120px;
-      height: 14px;
-      margin: 0 10px;
-      cursor: pointer;
-    }
-
-    .yang {
-      background: black;
-    }
-
-    .yin {
-      background: linear-gradient(to right, black 40%, white 40%, white 60%, black 60%);
-    }
-  </style>
-</head>
-
-<body>
-
-<h2>I Ching (Plum Blossom)</h2>
-
-<button onclick="resetAll()">Reset</button>
-
-<div id="hexagram"></div>
-
-<script>
-
-// 1 = yang, 0 = yin
 let lines = [1,1,1,1,1,1];
-
-// moving lines
 let moving = [false,false,false,false,false,false];
 
-// TEMP subject/object
-let subjectLine = 2;
-let objectLine = 5;
+let subjectLine = null;
+let objectLine = null;
+
+// 🔥 PUT YOUR GOOGLE SHEET ID HERE
+const SHEET_ID = "https://docs.google.com/spreadsheets/d/1eYJ26LpAL3XV9l95-6r4nEvR3m_ksITatkMH4eKxlN4/edit?gid=1065087330#gid=1065087330";
+
+let hexagramData = [];
+
+function getBinary() {
+  return lines.join("");
+}
+
+async function loadData() {
+  const url = `https://docs.google.com/spreadsheets/d/${Hexagram-Grid_view}/gviz/tq?tqx=out:json`;
+
+  const res = await fetch(url);
+  const text = await res.text();
+
+  const json = JSON.parse(text.substr(47).slice(0, -2));
+  const rows = json.table.rows;
+
+  hexagramData = rows.map(r => ({
+    number: r.c[0].v,
+    binary: String(r.c[1].v).padStart(6, "0"),
+    name: r.c[2].v,
+    subject: Number(r.c[3].v),
+    object: Number(r.c[4].v)
+  }));
+
+  update();
+}
+
+function findHexagram() {
+  const binary = getBinary();
+  return hexagramData.find(h => h.binary === binary);
+}
+
+function update() {
+  const hex = findHexagram();
+
+  if (hex) {
+    subjectLine = hex.subject;
+    objectLine = hex.object;
+  }
+
+  draw();
+}
 
 function draw() {
   const container = document.getElementById("hexagram");
@@ -88,7 +58,7 @@ function draw() {
     let row = document.createElement("div");
     row.className = "row";
 
-    // LEFT circle
+    // LEFT moving marker
     let left = document.createElement("div");
     left.className = "marker";
 
@@ -106,7 +76,7 @@ function draw() {
       draw();
     };
 
-    // LINE (no longer resets moving)
+    // LINE toggle (NO reset of moving lines)
     let line = document.createElement("div");
     line.className = "line " + (val ? "yang" : "yin");
 
@@ -115,7 +85,7 @@ function draw() {
       draw();
     };
 
-    // RIGHT marker
+    // RIGHT subject/object markers
     let right = document.createElement("div");
     right.className = "marker";
 
@@ -130,16 +100,5 @@ function draw() {
   });
 }
 
-// RESET FUNCTION
-function resetAll() {
-  lines = [1,1,1,1,1,1];
-  moving = [false,false,false,false,false,false];
-  draw();
-}
-
 draw();
-
-</script>
-
-</body>
-</html>
+loadData();
