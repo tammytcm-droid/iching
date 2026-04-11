@@ -4,14 +4,9 @@
   <title>I Ching App</title>
 
   <style>
-    body {
-      font-family: Arial;
-      text-align: center;
-    }
+    body { font-family: Arial; text-align: center; }
 
-    h2 {
-      margin-top: 10px;
-    }
+    h2 { margin-top: 10px; }
 
     button {
       margin: 10px;
@@ -53,9 +48,7 @@
       cursor: pointer;
     }
 
-    .yang {
-      background: black;
-    }
+    .yang { background: black; }
 
     .yin {
       background: linear-gradient(to right, black 40%, white 40%, white 60%, black 60%);
@@ -84,16 +77,14 @@ const SHEET_ID = "1eYJ26LpAL3XV9l95-6r4nEvR3m_ksITatkMH4eKxlN4";
 let hexagramData = [];
 
 // ----------------------------
-// BOTTOM → TOP FIX
-// index 0 = bottom line (line 1)
-// index 5 = top line (line 6)
+// BOTTOM → TOP system
+// index 0 = line 1 (bottom)
+// index 5 = line 6 (top)
 // ----------------------------
 function getBinary() {
   return lines.join("");
 }
 
-// ----------------------------
-// LOAD SHEET
 // ----------------------------
 async function loadData() {
   const url = `https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq?tqx=out:json`;
@@ -116,8 +107,6 @@ async function loadData() {
 }
 
 // ----------------------------
-// FIND HEXAGRAM
-// ----------------------------
 function findHexagram() {
   const binary = getBinary();
 
@@ -127,14 +116,14 @@ function findHexagram() {
 }
 
 // ----------------------------
-// UPDATE LOGIC
+// CORE UPDATE ENGINE
 // ----------------------------
 function update() {
   const hex = findHexagram();
 
   if (hex) {
-    subjectLine = hex.subject;
-    objectLine = hex.object;
+    subjectLine = Number(hex.subject);
+    objectLine = Number(hex.object);
   } else {
     subjectLine = null;
     objectLine = null;
@@ -144,22 +133,19 @@ function update() {
 }
 
 // ----------------------------
-// DRAW UI (FIXED INDEXING)
-// ----------------------------
 function draw() {
   const container = document.getElementById("hexagram");
   container.innerHTML = "";
 
   lines.forEach((val, i) => {
 
-    // IMPORTANT FIX:
-    // convert array index → human line number
-    const lineNumber = i + 1; // 1 (bottom) → 6 (top)
+    // convert array index → line number (BOTTOM → TOP)
+    const lineNumber = i + 1;
 
     let row = document.createElement("div");
     row.className = "row";
 
-    // LEFT moving marker
+    // LEFT moving indicator
     let left = document.createElement("div");
     left.className = "marker";
 
@@ -179,7 +165,7 @@ function draw() {
       draw();
     };
 
-    // LINE toggle
+    // LINE (toggles yin/yang)
     let line = document.createElement("div");
     line.className = "line " + (val ? "yang" : "yin");
 
@@ -188,7 +174,7 @@ function draw() {
       update();
     };
 
-    // RIGHT subject/object (FIXED MATCHING)
+    // RIGHT subject/object marker (BOTTOM-BASED LINE NUMBER)
     let right = document.createElement("div");
     right.className = "marker";
 
@@ -204,16 +190,12 @@ function draw() {
 }
 
 // ----------------------------
-// RESET
-// ----------------------------
 function resetAll() {
   lines = [1,1,1,1,1,1];
   moving = [false,false,false,false,false,false];
   update();
 }
 
-// ----------------------------
-// START
 // ----------------------------
 draw();
 loadData();
