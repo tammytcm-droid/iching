@@ -14,17 +14,20 @@
       cursor: pointer;
     }
 
+    .section {
+      margin-top: 20px;
+    }
+
     .row {
       display: flex;
       justify-content: center;
       align-items: center;
-      margin: 8px;
+      margin: 6px;
     }
 
     .marker {
       width: 30px;
       text-align: center;
-      cursor: pointer;
       font-weight: bold;
     }
 
@@ -37,7 +40,6 @@
       align-items: center;
       justify-content: center;
       font-size: 12px;
-      font-weight: bold;
       margin: auto;
     }
 
@@ -53,6 +55,11 @@
     .yin {
       background: linear-gradient(to right, black 40%, white 40%, white 60%, black 60%);
     }
+
+    .title {
+      margin-top: 15px;
+      font-weight: bold;
+    }
   </style>
 </head>
 
@@ -62,7 +69,15 @@
 
 <button onclick="resetAll()">Reset</button>
 
-<div id="hexagram"></div>
+<div class="section">
+  <div class="title">Original Hexagram</div>
+  <div id="original"></div>
+</div>
+
+<div class="section">
+  <div class="title">Nuclear Hexagram</div>
+  <div id="nuclear"></div>
+</div>
 
 <script>
 
@@ -77,8 +92,8 @@ const SHEET_ID = "1eYJ26LpAL3XV9l95-6r4nEvR3m_ksITatkMH4eKxlN4";
 let hexagramData = [];
 
 // ----------------------------
-function getBinary() {
-  return lines.join("");
+function getBinary(arr) {
+  return arr.join("");
 }
 
 // ----------------------------
@@ -103,47 +118,114 @@ async function loadData() {
 }
 
 // ----------------------------
-function findHexagram() {
+function findHexagram(arr) {
+  const binary = getBinary(arr);
+
   return hexagramData.find(h =>
-    String(h.binary).padStart(6, "0") === getBinary()
+    String(h.binary).padStart(6, "0") === binary
   );
 }
 
 // ----------------------------
+function getNuclear(arr) {
+  // Nuclear structure:
+  // 2,3,4 and 3,4,5
+  return [
+    arr[1],
+    arr[2],
+    arr[3],
+    arr[2],
+    arr[3],
+    arr[4]
+  ];
+}
+
+// ----------------------------
 function update() {
-  const hex = findHexagram();
+  const hex = findHexagram(lines);
 
   if (hex) {
-    subjectLine = hex.subject;
-    objectLine = hex.object;
+    subjectLine = Number(hex.subject);
+    objectLine = Number(hex.object);
   } else {
     subjectLine = null;
     objectLine = null;
   }
 
-  draw();
+  drawOriginal();
+  drawNuclear();
 }
 
 // ----------------------------
-// 🔥 FIX: REVERSE VISUAL ORDER
-// ----------------------------
-function draw() {
-  const container = document.getElementById("hexagram");
+function drawLine(container, arr) {
+
   container.innerHTML = "";
 
-  // IMPORTANT: reverse display order
   for (let i = 5; i >= 0; i--) {
 
-    const val = lines[i];
-    const lineNumber = i + 1; // still bottom-based logic
+    const val = arr[i];
+    const lineNumber = i + 1;
 
     let row = document.createElement("div");
     row.className = "row";
 
-    // LEFT moving marker
     let left = document.createElement("div");
     left.className = "marker";
 
+    let circle = document.createElement("div");
+    circle.className = "circle";
+
+    left.appendChild(circle);
+
+    let line = document.createElement("div");
+    line.className = "line " + (val ? "yang" : "yin");
+
+    row.appendChild(left);
+    row.appendChild(line);
+
+    container.appendChild(row);
+  }
+}
+
+// ----------------------------
+function drawOriginal() {
+  drawLine(document.getElementById("original"), lines);
+}
+
+// ----------------------------
+function drawNuclear() {
+  const nuclear = getNuclear(lines);
+  drawLine(document.getElementById("nuclear"), nuclear);
+}
+
+// ----------------------------
+function resetAll() {
+  lines = [1,1,1,1,1,1];
+  moving = [false,false,false,false,false,false];
+  update();
+}
+
+// ----------------------------
+function toggle(i) {
+  lines[i] = lines[i] ? 0 : 1;
+  update();
+}
+
+// ----------------------------
+// INTERACTIVE ORIGINAL ONLY
+// ----------------------------
+function drawInteractiveOriginal() {
+  const container = document.getElementById("original");
+  container.innerHTML = "";
+
+  for (let i = 5; i >= 0; i--) {
+
+    const val = lines[i];
+
+    let row = document.createElement("div");
+    row.className = "row";
+
+    let left = document.createElement("div");
     let circle = document.createElement("div");
     circle.className = "circle";
 
@@ -155,42 +237,38 @@ function draw() {
 
     left.onclick = () => {
       moving[i] = !moving[i];
-      draw();
+      drawInteractiveOriginal();
     };
 
-    // LINE toggle
     let line = document.createElement("div");
     line.className = "line " + (val ? "yang" : "yin");
 
     line.onclick = () => {
-      lines[i] = lines[i] ? 0 : 1;
-      update();
+      toggle(i);
     };
-
-    // RIGHT subject/object
-    let right = document.createElement("div");
-    right.className = "marker";
-
-    if (lineNumber === subjectLine) right.innerText = "S";
-    if (lineNumber === objectLine) right.innerText = "O";
 
     row.appendChild(left);
     row.appendChild(line);
-    row.appendChild(right);
 
     container.appendChild(row);
   }
 }
 
 // ----------------------------
-function resetAll() {
-  lines = [1,1,1,1,1,1];
-  moving = [false,false,false,false,false,false];
-  update();
+function update() {
+  const hex = findHexagram(lines);
+
+  if (hex) {
+    subjectLine = Number(hex.subject);
+    objectLine = Number(hex.object);
+  }
+
+  drawInteractiveOriginal();
+  drawNuclear();
 }
 
 // ----------------------------
-draw();
+drawInteractiveOriginal();
 loadData();
 
 </script>
