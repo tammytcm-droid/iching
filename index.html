@@ -9,35 +9,42 @@
       text-align: center;
     }
 
+    button {
+      margin: 10px;
+      padding: 6px 12px;
+      font-size: 14px;
+      cursor: pointer;
+    }
+
     .row {
       display: flex;
       justify-content: center;
       align-items: center;
-      margin: 6px;
+      margin: 8px;
     }
 
     .marker {
       width: 30px;
       text-align: center;
       cursor: pointer;
-      font-weight: bold;
-      font-size: 14px;
     }
 
     .circle {
-      width: 16px;
-      height: 16px;
+      width: 18px;
+      height: 18px;
       border-radius: 50%;
       background: #ccc;
-      display: inline-flex;
+      display: flex;
       align-items: center;
       justify-content: center;
-      font-size: 11px;
+      margin: auto;
+      font-size: 12px;
+      font-weight: bold;
     }
 
     .line {
       width: 120px;
-      height: 12px;
+      height: 14px;
       margin: 0 10px;
       cursor: pointer;
     }
@@ -56,6 +63,8 @@
 
 <h2>I Ching (Plum Blossom)</h2>
 
+<button onclick="resetAll()">Reset</button>
+
 <div id="hexagram"></div>
 
 <script>
@@ -66,7 +75,7 @@ let lines = [1,1,1,1,1,1];
 // moving lines
 let moving = [false,false,false,false,false,false];
 
-// TEMP subject/object (we'll replace with real data later)
+// TEMP subject/object
 let subjectLine = 2;
 let objectLine = 5;
 
@@ -79,7 +88,7 @@ function draw() {
     let row = document.createElement("div");
     row.className = "row";
 
-    // LEFT circle (always visible)
+    // LEFT circle
     let left = document.createElement("div");
     left.className = "marker";
 
@@ -87,30 +96,26 @@ function draw() {
     circle.className = "circle";
 
     if (moving[i]) {
-      circle.innerText = val ? "O" : "X";
+      circle.innerText = val === 1 ? "O" : "X";
     }
 
     left.appendChild(circle);
 
     left.onclick = () => {
       moving[i] = !moving[i];
-      update();
+      draw();
     };
 
-    // LINE
+    // LINE (no longer resets moving)
     let line = document.createElement("div");
     line.className = "line " + (val ? "yang" : "yin");
 
     line.onclick = () => {
       lines[i] = lines[i] ? 0 : 1;
-
-      // IMPORTANT: reset moving marker if line changes
-      moving[i] = false;
-
-      update();
+      draw();
     };
 
-    // RIGHT marker (subject/object)
+    // RIGHT marker
     let right = document.createElement("div");
     right.className = "marker";
 
@@ -125,13 +130,11 @@ function draw() {
   });
 }
 
-function update() {
+// RESET FUNCTION
+function resetAll() {
+  lines = [1,1,1,1,1,1];
+  moving = [false,false,false,false,false,false];
   draw();
-
-  // placeholder for next steps:
-  // - detect hexagram
-  // - calculate nuclear
-  // - calculate outcome
 }
 
 draw();
