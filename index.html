@@ -77,10 +77,6 @@ const SHEET_ID = "1eYJ26LpAL3XV9l95-6r4nEvR3m_ksITatkMH4eKxlN4";
 let hexagramData = [];
 
 // ----------------------------
-// BOTTOM → TOP system
-// index 0 = line 1 (bottom)
-// index 5 = line 6 (top)
-// ----------------------------
 function getBinary() {
   return lines.join("");
 }
@@ -108,22 +104,18 @@ async function loadData() {
 
 // ----------------------------
 function findHexagram() {
-  const binary = getBinary();
-
   return hexagramData.find(h =>
-    String(h.binary).padStart(6, "0") === binary
+    String(h.binary).padStart(6, "0") === getBinary()
   );
 }
 
-// ----------------------------
-// CORE UPDATE ENGINE
 // ----------------------------
 function update() {
   const hex = findHexagram();
 
   if (hex) {
-    subjectLine = Number(hex.subject);
-    objectLine = Number(hex.object);
+    subjectLine = hex.subject;
+    objectLine = hex.object;
   } else {
     subjectLine = null;
     objectLine = null;
@@ -133,19 +125,22 @@ function update() {
 }
 
 // ----------------------------
+// 🔥 FIX: REVERSE VISUAL ORDER
+// ----------------------------
 function draw() {
   const container = document.getElementById("hexagram");
   container.innerHTML = "";
 
-  lines.forEach((val, i) => {
+  // IMPORTANT: reverse display order
+  for (let i = 5; i >= 0; i--) {
 
-    // convert array index → line number (BOTTOM → TOP)
-    const lineNumber = i + 1;
+    const val = lines[i];
+    const lineNumber = i + 1; // still bottom-based logic
 
     let row = document.createElement("div");
     row.className = "row";
 
-    // LEFT moving indicator
+    // LEFT moving marker
     let left = document.createElement("div");
     left.className = "marker";
 
@@ -154,8 +149,6 @@ function draw() {
 
     if (moving[i]) {
       circle.innerText = val === 1 ? "O" : "X";
-    } else {
-      circle.innerText = "";
     }
 
     left.appendChild(circle);
@@ -165,7 +158,7 @@ function draw() {
       draw();
     };
 
-    // LINE (toggles yin/yang)
+    // LINE toggle
     let line = document.createElement("div");
     line.className = "line " + (val ? "yang" : "yin");
 
@@ -174,7 +167,7 @@ function draw() {
       update();
     };
 
-    // RIGHT subject/object marker (BOTTOM-BASED LINE NUMBER)
+    // RIGHT subject/object
     let right = document.createElement("div");
     right.className = "marker";
 
@@ -186,7 +179,7 @@ function draw() {
     row.appendChild(right);
 
     container.appendChild(row);
-  });
+  }
 }
 
 // ----------------------------
