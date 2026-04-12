@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html>
 <head>
-  <title>I Ching App</title>
+  <title>I Ching TCM</title>
 
   <style>
     body { font-family: Arial; text-align: center; }
@@ -60,6 +60,10 @@
 
     .trigram { font-size:36px; font-weight:bold; }
 
+    .trigram-block {
+      margin-top: 40px; /* moved slightly lower */
+    }
+
     .tag {
       display:inline-block;
       background:#eee;
@@ -88,12 +92,26 @@
 
     .hidden { display:none; }
 
+    .formula-category {
+      margin-top: 12px;
+      font-weight: bold;
+    }
+
+    .formula-item {
+      margin-left: 15px;
+      margin-top: 4px;
+    }
+
+    .meridian-row {
+      margin-left: 25px;
+    }
+
   </style>
 </head>
 
 <body>
 
-<h2>I Ching (Plum Blossom)</h2>
+<h2>I Ching TCM</h2>
 
 <button onclick="resetAll()">Reset</button>
 <button onclick="randomHexagram()">Random</button>
@@ -116,11 +134,11 @@
   </div>
 
   <!-- TRIGRAMS -->
-  <div>
+  <div class="trigram-block">
     <div id="top-trigram" class="trigram"></div>
     <div id="top-tags"></div>
 
-    <div style="height:40px;"></div>
+    <div style="height:50px;"></div>
 
     <div id="bottom-trigram" class="trigram"></div>
     <div id="bottom-tags"></div>
@@ -161,14 +179,12 @@
 <!-- INFO -->
 <div class="info-section">
 
-  <!-- COLLAPSIBLE INFO -->
   <div class="collapsible" onclick="toggleInfo()">Hexagram Info ▼</div>
 
   <div id="info-content">
     <div id="info"></div>
   </div>
 
-  <!-- FORMULAS -->
   <h3>Formulas</h3>
   <div id="formula-list"></div>
 
@@ -214,38 +230,61 @@ async function loadHex(){
 
 async function loadFormulas(){
 
-  try {
+  const url = `https://docs.google.com/spreadsheets/d/${FORMULA_SHEET}/gviz/tq?tqx=out:json&gid=282292594`;
 
-    const url = `https://docs.google.com/spreadsheets/d/${FORMULA_SHEET}/gviz/tq?tqx=out:json&gid=282292594`;
+  const res = await fetch(url);
+  const text = await res.text();
 
-    const res = await fetch(url);
-    const text = await res.text();
+  const json = JSON.parse(text.substring(47).slice(0, -2));
 
-    const json = JSON.parse(text.substring(47).slice(0, -2));
+  formulaData = json.table.rows.map(r => ({
+    name: r.c[0]?.v || "",
+    category: r.c[3]?.v || "Other",
+    meridians: r.c[4]?.v || ""
+  })).filter(f => f.name);
 
-    const rows = json.table.rows;
+  renderFormulas();
+}
 
-    formulaData = [];
+function renderFormulas(){
 
-    rows.forEach(r => {
+  const c=document.getElementById("formula-list");
+  c.innerHTML="";
 
-      if(!r.c) return;
+  const grouped={};
 
-      const name = r.c[0]?.v ? String(r.c[0].v) : "";
-      const meridians = r.c[4]?.v ? String(r.c[4].v) : "";
+  formulaData.forEach(f=>{
+    if(!grouped[f.category]) grouped[f.category]=[];
+    grouped[f.category].push(f);
+  });
 
-      if(name.trim() === "") return;
+  Object.keys(grouped).forEach(cat=>{
 
-      formulaData.push({ name, meridians });
+    const header=document.createElement("div");
+    header.className="formula-category";
+    header.innerText=cat;
+    c.appendChild(header);
 
+    grouped[cat].forEach(f=>{
+
+      const item=document.createElement("div");
+      item.className="formula-item";
+      item.innerText=f.name;
+      c.appendChild(item);
+
+      const merRow=document.createElement("div");
+      merRow.className="meridian-row";
+
+      f.meridians.split(",").forEach(m=>{
+        let tag=document.createElement("span");
+        tag.className="tag";
+        tag.innerText=m.trim();
+        merRow.appendChild(tag);
+      });
+
+      c.appendChild(merRow);
     });
-
-    renderFormulas();
-
-  } catch (err) {
-    document.getElementById("formula-list").innerText =
-      "Error loading formulas (check sharing).";
-  }
+  });
 }
 
 function findHex(a){
@@ -369,17 +408,6 @@ function selectHex(type){
 
 function toggleInfo(){
   document.getElementById("info-content").classList.toggle("hidden");
-}
-
-function renderFormulas(){
-  const c=document.getElementById("formula-list");
-  c.innerHTML="";
-
-  formulaData.forEach(f=>{
-    let row=document.createElement("div");
-    row.innerText=`${f.name} — ${f.meridians}`;
-    c.appendChild(row);
-  });
 }
 
 function randomHexagram(){
