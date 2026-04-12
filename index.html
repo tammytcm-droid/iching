@@ -1,76 +1,65 @@
 <!DOCTYPE html>
 <html>
 <head>
-<title>I Ching Clinical Tool</title>
+  <title>I Ching App</title>
 
-<style>
-body { font-family: Arial; text-align:center; }
+  <style>
+    body { font-family: Arial; text-align: center; }
 
-.container {
-  display:flex;
-  justify-content:center;
-  gap:30px;
-  margin-top:20px;
-}
+    .container {
+      display: flex;
+      justify-content: center;
+      gap: 30px;
+      margin-top: 20px;
+      align-items: flex-start;
+    }
 
-.row {
-  display:flex;
-  align-items:center;
-  justify-content:center;
-  height:24px;
-  margin:6px 0;
-}
+    .row {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      height: 24px;
+      margin: 6px 0;
+    }
 
-.marker { width:30px; display:flex; justify-content:center; }
+    .marker { width: 30px; display:flex; justify-content:center; }
 
-.line { width:110px; height:12px; margin:0 6px; }
+    .line { width:110px; height:12px; margin:0 6px; }
 
-.yang { background:black; }
+    .yang { background:black; }
 
-.yin {
-  background: linear-gradient(to right, black 40%, white 40%, white 60%, black 60%);
-}
+    .yin {
+      background: linear-gradient(to right, black 40%, white 40%, white 60%, black 60%);
+    }
 
-.trigram { font-size:36px; font-weight:bold; }
+    .trigram { font-size:36px; font-weight:bold; }
 
-.tag {
-  display:inline-block;
-  background:#eee;
-  padding:4px 10px;
-  margin:3px;
-  border-radius:12px;
-  cursor:pointer;
-  font-size:11px;
-}
+    .tag {
+      display:inline-block;
+      background:#eee;
+      border-radius:12px;
+      padding:4px 10px;
+      margin:3px;
+      cursor:pointer;
+      font-size:11px;
+    }
 
-.tag.active { background:black; color:white; }
+    .tag.active { background:black; color:white; }
 
-.notes { font-size:12px; margin-top:6px; }
+    .notes { font-size:12px; margin-top:6px; }
 
-.section {
-  width:900px;
-  margin:30px auto;
-  text-align:left;
-}
+    .section {
+      width:700px;
+      margin:30px auto;
+      text-align:left;
+    }
 
-.category {
-  border-top:1px solid #ccc;
-  padding:10px 0;
-}
+    .formula {
+      border-bottom:1px solid #ddd;
+      padding:10px 0;
+    }
 
-.category-header {
-  font-weight:bold;
-  cursor:pointer;
-}
-
-.formula {
-  padding-left:15px;
-  margin:4px 0;
-}
-
-.hidden { display:none; }
-
-</style>
+  </style>
 </head>
 
 <body>
@@ -82,63 +71,59 @@ body { font-family: Arial; text-align:center; }
 
 <div class="container">
 
-<div>
-<div id="orig-num"></div>
-<div id="original"></div>
-<div id="orig-tags"></div>
-<div id="orig-notes" class="notes"></div>
-<input type="radio" name="hex" onclick="selectHex('orig')">
-</div>
+  <div>
+    <div id="orig-num"></div>
+    <div id="original"></div>
+    <div id="orig-tags"></div>
+    <div id="orig-notes" class="notes"></div>
+    <input type="radio" name="hex" onclick="selectHex('orig')">
+  </div>
 
-<div>
-<div id="top-trigram" class="trigram"></div>
-<div id="top-tags"></div>
+  <div>
+    <div id="top-trigram" class="trigram"></div>
+    <div id="top-tags"></div>
 
-<div style="height:40px;"></div>
+    <div style="height:40px;"></div>
 
-<div id="bottom-trigram" class="trigram"></div>
-<div id="bottom-tags"></div>
-</div>
+    <div id="bottom-trigram" class="trigram"></div>
+    <div id="bottom-tags"></div>
+  </div>
 
-<div>
-<div id="nuc-num"></div>
-<div id="nuclear"></div>
-<div id="nuc-tags"></div>
-<div id="nuc-notes" class="notes"></div>
-<input type="radio" name="hex" onclick="selectHex('nuc')">
-</div>
+  <div>
+    <div id="nuc-num"></div>
+    <div id="nuclear"></div>
+    <div id="nuc-tags"></div>
+    <div id="nuc-notes" class="notes"></div>
+    <input type="radio" name="hex" onclick="selectHex('nuc')">
+  </div>
 
-<div>
-<div id="out-num"></div>
-<div id="outcome"></div>
-<div id="out-tags"></div>
-<div id="out-notes" class="notes"></div>
-<input type="radio" name="hex" onclick="selectHex('out')">
-</div>
+  <div>
+    <div id="out-num"></div>
+    <div id="outcome"></div>
+    <div id="out-tags"></div>
+    <div id="out-notes" class="notes"></div>
+    <input type="radio" name="hex" onclick="selectHex('out')">
+  </div>
 
-</div>
-
-<!-- FILTER -->
-<div class="section">
-<h3>Meridian Filter</h3>
-<div id="filter-tags"></div>
 </div>
 
 <!-- INFO -->
 <div class="section">
-<h3>Hexagram Info</h3>
-<div id="info"></div>
+  <h3>Hexagram Info</h3>
+  <div id="info"></div>
 </div>
 
 <!-- FORMULAS -->
 <div class="section">
-<h3>Formulas</h3>
-<div id="formula-list"></div>
+  <h3>Formulas</h3>
+  <div id="formulas"></div>
 </div>
 
 <script>
 
+// --------------------
 // STATE
+// --------------------
 let lines=[1,1,1,1,1,1];
 let moving=[false,false,false,false,false,false];
 
@@ -147,16 +132,16 @@ let selectedTags=new Set();
 let hexData=[];
 let formulaData=[];
 
-let currentHex={};
-
+// --------------------
 // IDS
+// --------------------
 const HEX_SHEET="1eYJ26LpAL3XV9l95-6r4nEvR3m_ksITatkMH4eKxlN4";
 const FORMULA_SHEET="1aHGUMyg-524vwzfcEcs8JPFePnbj5Ss06QI7o7T8UqU";
 
-// ----------------
+// --------------------
 function getBinary(a){ return a.join(""); }
 
-// ----------------
+// --------------------
 async function loadHex(){
   const url=`https://docs.google.com/spreadsheets/d/${HEX_SHEET}/gviz/tq?tqx=out:json`;
   const res=await fetch(url);
@@ -164,8 +149,8 @@ async function loadHex(){
   const json=JSON.parse(text.substr(47).slice(0,-2));
 
   hexData=json.table.rows.map(r=>({
-    binary:String(r.c[1].v).padStart(6,"0"),
     number:r.c[0].v,
+    binary:String(r.c[1].v).padStart(6,"0"),
     pinyin:r.c[2].v,
     chinese:r.c[6]?.v||"",
     meridians:r.c[7]?.v||"",
@@ -174,13 +159,13 @@ async function loadHex(){
     topM:r.c[10]?.v||"",
     bottomM:r.c[11]?.v||"",
     notes:r.c[17]?.v||"",
-    info:[r.c[18]?.v,r.c[19]?.v,r.c[20]?.v,r.c[21]?.v,r.c[22]?.v]
+    info:[r.c[18]?.v,r.c[19]?.v,r.c[20]?.v]
   }));
 
   update();
 }
 
-// ----------------
+// --------------------
 async function loadFormulas(){
   const url=`https://docs.google.com/spreadsheets/d/${FORMULA_SHEET}/gviz/tq?tqx=out:json`;
   const res=await fetch(url);
@@ -189,38 +174,48 @@ async function loadFormulas(){
 
   formulaData=json.table.rows.map(r=>({
     name:r.c[0]?.v||"",
-    category:r.c[3]?.v||"",
-    meridians:r.c[4]?.v||""
+    meridians:r.c[1]?.v||"",
+    notes:r.c[2]?.v||"",
+    actions:r.c[3]?.v||"",
+    indications:r.c[4]?.v||""
   }));
 
   renderFormulas();
 }
 
-// ----------------
+// --------------------
 function findHex(a){
   return hexData.find(h=>h.binary===getBinary(a));
 }
 
-// ----------------
+// --------------------
+function renderTags(id,text){
+  const c=document.getElementById(id);
+  c.innerHTML="";
+
+  if(!text) return;
+
+  text.split(",").forEach(t=>{
+    let tag=document.createElement("span");
+    tag.className="tag";
+    tag.innerText=t.trim();
+
+    if(selectedTags.has(t.trim())) tag.classList.add("active");
+
+    tag.onclick=()=>{
+      if(selectedTags.has(t.trim())) selectedTags.delete(t.trim());
+      else selectedTags.add(t.trim());
+      update();
+    };
+
+    c.appendChild(tag);
+  });
+}
+
+// --------------------
 function update(){
 
   const orig=findHex(lines);
-  const nuc=findHex([lines[1],lines[2],lines[3],lines[2],lines[3],lines[4]]);
-  const out=findHex(lines.map((v,i)=>moving[i]?(v?0:1):v));
-
-  currentHex={orig,nuc,out};
-
-  // BUILD FILTER FROM ALL 3
-  selectedTags.clear();
-
-  [orig,nuc,out].forEach(h=>{
-    if(!h) return;
-    h.meridians.split(",").forEach(m=>{
-      selectedTags.add(m.trim());
-    });
-  });
-
-  renderFilter();
 
   if(orig){
     document.getElementById("orig-num").innerText=
@@ -241,96 +236,36 @@ function update(){
   renderFormulas();
 }
 
-// ----------------
-function renderTags(id,text){
-  const c=document.getElementById(id);
-  c.innerHTML="";
-  if(!text) return;
-
-  text.split(",").forEach(t=>{
-    let tag=document.createElement("span");
-    tag.className="tag";
-    tag.innerText=t.trim();
-
-    tag.onclick=()=>{
-      if(selectedTags.has(t.trim())) selectedTags.delete(t.trim());
-      else selectedTags.add(t.trim());
-      renderFilter();
-      renderFormulas();
-    };
-
-    c.appendChild(tag);
-  });
-}
-
-// ----------------
-function renderFilter(){
-  const c=document.getElementById("filter-tags");
-  c.innerHTML="";
-
-  selectedTags.forEach(t=>{
-    let tag=document.createElement("span");
-    tag.className="tag active";
-    tag.innerText=t;
-
-    tag.onclick=()=>{
-      selectedTags.delete(t);
-      renderFilter();
-      renderFormulas();
-    };
-
-    c.appendChild(tag);
-  });
-}
-
-// ----------------
+// --------------------
 function renderFormulas(){
 
-  const container=document.getElementById("formula-list");
+  const container=document.getElementById("formulas");
   container.innerHTML="";
 
-  let groups={};
+  let filtered=formulaData.filter(f=>{
 
-  formulaData.forEach(f=>{
-    if(!groups[f.category]) groups[f.category]=[];
-    groups[f.category].push(f);
+    if(selectedTags.size===0) return true;
+
+    return f.meridians.split(",").some(m=>
+      selectedTags.has(m.trim())
+    );
   });
 
-  Object.keys(groups).forEach(cat=>{
+  filtered.forEach(f=>{
+    let div=document.createElement("div");
+    div.className="formula";
 
-    let list=groups[cat].filter(f=>{
-      if(selectedTags.size===0) return true;
+    div.innerHTML=`
+      <strong>${f.name}</strong><br>
+      ${f.actions}<br>
+      <em>${f.indications}</em>
+    `;
 
-      return f.meridians.split(",").some(m=>
-        selectedTags.has(m.trim())
-      );
-    });
-
-    let wrapper=document.createElement("div");
-    wrapper.className="category";
-
-    let header=document.createElement("div");
-    header.className="category-header";
-    header.innerText=`${cat} (${list.length})`;
-
-    let body=document.createElement("div");
-
-    header.onclick=()=>body.classList.toggle("hidden");
-
-    list.forEach(f=>{
-      let row=document.createElement("div");
-      row.className="formula";
-      row.innerText=`${f.name} — ${f.meridians}`;
-      body.appendChild(row);
-    });
-
-    wrapper.appendChild(header);
-    wrapper.appendChild(body);
-    container.appendChild(wrapper);
+    container.appendChild(div);
   });
 }
 
-// ----------------
+// --------------------
 function drawHex(id,arr,interactive=false){
 
   const c=document.getElementById(id);
@@ -344,7 +279,10 @@ function drawHex(id,arr,interactive=false){
     line.className="line "+(arr[i]?"yang":"yin");
 
     if(interactive){
-      line.onclick=()=>{ lines[i]=lines[i]?0:1; update(); };
+      line.onclick=()=>{
+        lines[i]=lines[i]?0:1;
+        update();
+      };
     }
 
     row.appendChild(document.createElement("div"));
@@ -355,18 +293,21 @@ function drawHex(id,arr,interactive=false){
   }
 }
 
-// ----------------
+// --------------------
 function randomHexagram(){
   lines=Array.from({length:6},()=>Math.random()>0.5?1:0);
+  moving=Array.from({length:6},()=>Math.random()>0.5);
   update();
 }
 
 function resetAll(){
+  lines=[1,1,1,1,1,1];
+  moving=[false,false,false,false,false,false];
   selectedTags.clear();
   update();
 }
 
-// ----------------
+// --------------------
 loadHex();
 loadFormulas();
 
