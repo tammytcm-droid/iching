@@ -1,48 +1,76 @@
 <!DOCTYPE html>
 <html>
 <head>
-  <title>I Ching Clinical Tool</title>
+<title>I Ching Clinical Tool</title>
 
-  <style>
-    body { font-family: Arial; text-align:center; }
+<style>
+body { font-family: Arial; text-align:center; }
 
-    .tag {
-      display:inline-block;
-      background:#eee;
-      padding:4px 10px;
-      margin:3px;
-      border-radius:12px;
-      cursor:pointer;
-      font-size:11px;
-    }
+.container {
+  display:flex;
+  justify-content:center;
+  gap:30px;
+  margin-top:20px;
+}
 
-    .tag.active { background:black; color:white; }
+.row {
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  height:24px;
+  margin:6px 0;
+}
 
-    .section {
-      width:800px;
-      margin:30px auto;
-      text-align:left;
-    }
+.marker { width:30px; display:flex; justify-content:center; }
 
-    .category {
-      border-top:1px solid #ccc;
-      padding:10px 0;
-    }
+.line { width:110px; height:12px; margin:0 6px; }
 
-    .category-header {
-      cursor:pointer;
-      font-weight:bold;
-    }
+.yang { background:black; }
 
-    .formula {
-      padding-left:15px;
-      margin:4px 0;
-      font-size:13px;
-    }
+.yin {
+  background: linear-gradient(to right, black 40%, white 40%, white 60%, black 60%);
+}
 
-    .hidden { display:none; }
+.trigram { font-size:36px; font-weight:bold; }
 
-  </style>
+.tag {
+  display:inline-block;
+  background:#eee;
+  padding:4px 10px;
+  margin:3px;
+  border-radius:12px;
+  cursor:pointer;
+  font-size:11px;
+}
+
+.tag.active { background:black; color:white; }
+
+.notes { font-size:12px; margin-top:6px; }
+
+.section {
+  width:900px;
+  margin:30px auto;
+  text-align:left;
+}
+
+.category {
+  border-top:1px solid #ccc;
+  padding:10px 0;
+}
+
+.category-header {
+  font-weight:bold;
+  cursor:pointer;
+}
+
+.formula {
+  padding-left:15px;
+  margin:4px 0;
+}
+
+.hidden { display:none; }
+
+</style>
 </head>
 
 <body>
@@ -52,20 +80,65 @@
 <button onclick="resetAll()">Reset</button>
 <button onclick="randomHexagram()">Random</button>
 
+<div class="container">
+
+<div>
+<div id="orig-num"></div>
+<div id="original"></div>
+<div id="orig-tags"></div>
+<div id="orig-notes" class="notes"></div>
+<input type="radio" name="hex" onclick="selectHex('orig')">
+</div>
+
+<div>
+<div id="top-trigram" class="trigram"></div>
+<div id="top-tags"></div>
+
+<div style="height:40px;"></div>
+
+<div id="bottom-trigram" class="trigram"></div>
+<div id="bottom-tags"></div>
+</div>
+
+<div>
+<div id="nuc-num"></div>
+<div id="nuclear"></div>
+<div id="nuc-tags"></div>
+<div id="nuc-notes" class="notes"></div>
+<input type="radio" name="hex" onclick="selectHex('nuc')">
+</div>
+
+<div>
+<div id="out-num"></div>
+<div id="outcome"></div>
+<div id="out-tags"></div>
+<div id="out-notes" class="notes"></div>
+<input type="radio" name="hex" onclick="selectHex('out')">
+</div>
+
+</div>
+
 <!-- FILTER -->
 <div class="section">
-  <h3>Meridian Filter</h3>
-  <div id="filter-tags"></div>
+<h3>Meridian Filter</h3>
+<div id="filter-tags"></div>
+</div>
+
+<!-- INFO -->
+<div class="section">
+<h3>Hexagram Info</h3>
+<div id="info"></div>
 </div>
 
 <!-- FORMULAS -->
 <div class="section">
-  <h3>Formulas</h3>
-  <div id="formula-list"></div>
+<h3>Formulas</h3>
+<div id="formula-list"></div>
 </div>
 
 <script>
 
+// STATE
 let lines=[1,1,1,1,1,1];
 let moving=[false,false,false,false,false,false];
 
@@ -74,6 +147,9 @@ let selectedTags=new Set();
 let hexData=[];
 let formulaData=[];
 
+let currentHex={};
+
+// IDS
 const HEX_SHEET="1eYJ26LpAL3XV9l95-6r4nEvR3m_ksITatkMH4eKxlN4";
 const FORMULA_SHEET="1aHGUMyg-524vwzfcEcs8JPFePnbj5Ss06QI7o7T8UqU";
 
@@ -89,7 +165,16 @@ async function loadHex(){
 
   hexData=json.table.rows.map(r=>({
     binary:String(r.c[1].v).padStart(6,"0"),
-    meridians:r.c[7]?.v||""
+    number:r.c[0].v,
+    pinyin:r.c[2].v,
+    chinese:r.c[6]?.v||"",
+    meridians:r.c[7]?.v||"",
+    top:r.c[8]?.v||"",
+    bottom:r.c[9]?.v||"",
+    topM:r.c[10]?.v||"",
+    bottomM:r.c[11]?.v||"",
+    notes:r.c[17]?.v||"",
+    info:[r.c[18]?.v,r.c[19]?.v,r.c[20]?.v,r.c[21]?.v,r.c[22]?.v]
   }));
 
   update();
@@ -117,23 +202,69 @@ function findHex(a){
 }
 
 // ----------------
-function buildFilter(){
+function update(){
 
   const orig=findHex(lines);
-  if(!orig) return;
+  const nuc=findHex([lines[1],lines[2],lines[3],lines[2],lines[3],lines[4]]);
+  const out=findHex(lines.map((v,i)=>moving[i]?(v?0:1):v));
 
+  currentHex={orig,nuc,out};
+
+  // BUILD FILTER FROM ALL 3
   selectedTags.clear();
 
-  orig.meridians.split(",").forEach(m=>{
-    selectedTags.add(m.trim());
+  [orig,nuc,out].forEach(h=>{
+    if(!h) return;
+    h.meridians.split(",").forEach(m=>{
+      selectedTags.add(m.trim());
+    });
   });
 
   renderFilter();
+
+  if(orig){
+    document.getElementById("orig-num").innerText=
+      `${orig.number} ${orig.chinese} ${orig.pinyin}`;
+
+    document.getElementById("top-trigram").innerText=orig.top;
+    document.getElementById("bottom-trigram").innerText=orig.bottom;
+
+    renderTags("orig-tags",orig.meridians);
+    renderTags("top-tags",orig.topM);
+    renderTags("bottom-tags",orig.bottomM);
+
+    document.getElementById("orig-notes").innerText=orig.notes;
+  }
+
+  drawHex("original",lines,true);
+
+  renderFormulas();
+}
+
+// ----------------
+function renderTags(id,text){
+  const c=document.getElementById(id);
+  c.innerHTML="";
+  if(!text) return;
+
+  text.split(",").forEach(t=>{
+    let tag=document.createElement("span");
+    tag.className="tag";
+    tag.innerText=t.trim();
+
+    tag.onclick=()=>{
+      if(selectedTags.has(t.trim())) selectedTags.delete(t.trim());
+      else selectedTags.add(t.trim());
+      renderFilter();
+      renderFormulas();
+    };
+
+    c.appendChild(tag);
+  });
 }
 
 // ----------------
 function renderFilter(){
-
   const c=document.getElementById("filter-tags");
   c.innerHTML="";
 
@@ -144,18 +275,12 @@ function renderFilter(){
 
     tag.onclick=()=>{
       selectedTags.delete(t);
-      update();
+      renderFilter();
+      renderFormulas();
     };
 
     c.appendChild(tag);
   });
-}
-
-// ----------------
-function update(){
-  buildFilter();
-  renderFilter();
-  renderFormulas();
 }
 
 // ----------------
@@ -164,7 +289,6 @@ function renderFormulas(){
   const container=document.getElementById("formula-list");
   container.innerHTML="";
 
-  // group by category
   let groups={};
 
   formulaData.forEach(f=>{
@@ -175,7 +299,6 @@ function renderFormulas(){
   Object.keys(groups).forEach(cat=>{
 
     let list=groups[cat].filter(f=>{
-
       if(selectedTags.size===0) return true;
 
       return f.meridians.split(",").some(m=>
@@ -192,9 +315,7 @@ function renderFormulas(){
 
     let body=document.createElement("div");
 
-    header.onclick=()=>{
-      body.classList.toggle("hidden");
-    };
+    header.onclick=()=>body.classList.toggle("hidden");
 
     list.forEach(f=>{
       let row=document.createElement("div");
@@ -207,6 +328,31 @@ function renderFormulas(){
     wrapper.appendChild(body);
     container.appendChild(wrapper);
   });
+}
+
+// ----------------
+function drawHex(id,arr,interactive=false){
+
+  const c=document.getElementById(id);
+  c.innerHTML="";
+
+  for(let i=5;i>=0;i--){
+    let row=document.createElement("div");
+    row.className="row";
+
+    let line=document.createElement("div");
+    line.className="line "+(arr[i]?"yang":"yin");
+
+    if(interactive){
+      line.onclick=()=>{ lines[i]=lines[i]?0:1; update(); };
+    }
+
+    row.appendChild(document.createElement("div"));
+    row.appendChild(line);
+    row.appendChild(document.createElement("div"));
+
+    c.appendChild(row);
+  }
 }
 
 // ----------------
