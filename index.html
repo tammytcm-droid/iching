@@ -60,15 +60,13 @@
 
     .trigram { font-size:36px; font-weight:bold; }
 
-    .trigram-block {
-      margin-top: 40px; /* moved slightly lower */
-    }
+    .trigram-block { margin-top: 40px; }
 
     .tag {
       display:inline-block;
       background:#eee;
       padding:4px 10px;
-      margin:3px;
+      margin:2px;
       border-radius:12px;
       font-size:11px;
     }
@@ -79,7 +77,7 @@
       margin-top:30px;
       border-top:1px solid #ccc;
       padding-top:15px;
-      width:700px;
+      width:800px;
       margin-left:auto;
       margin-right:auto;
       text-align:left;
@@ -97,14 +95,44 @@
       font-weight: bold;
     }
 
-    .formula-item {
-      margin-left: 15px;
-      margin-top: 4px;
+    .formula-row {
+      display:flex;
+      justify-content: space-between;
+      align-items:center;
+      padding:6px;
+      cursor:pointer;
     }
 
-    .meridian-row {
-      margin-left: 25px;
+    .formula-row:hover {
+      background:#f5f5f5;
     }
+
+    .formula-name {
+      width:50%;
+    }
+
+    .formula-tags {
+      width:50%;
+      text-align:right;
+    }
+
+    /* POPUP */
+    .popup {
+      position: fixed;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%,-50%);
+      background: white;
+      border: 1px solid #ccc;
+      padding: 20px;
+      width: 400px;
+      max-height: 500px;
+      overflow:auto;
+      box-shadow: 0 0 10px rgba(0,0,0,0.3);
+      z-index: 999;
+    }
+
+    .popup.hidden { display:none; }
 
   </style>
 </head>
@@ -118,22 +146,17 @@
 
 <div class="container">
 
-  <!-- ORIGINAL -->
   <div class="hex-block">
     <div class="title">Original</div>
-
     <div class="name-block">
       <div id="orig-top"></div>
       <div id="orig-eng"></div>
     </div>
-
     <div id="original"></div>
     <div id="orig-notes" class="notes"></div>
-
     <input type="radio" name="hex" checked onclick="selectHex('orig')">
   </div>
 
-  <!-- TRIGRAMS -->
   <div class="trigram-block">
     <div id="top-trigram" class="trigram"></div>
     <div id="top-tags"></div>
@@ -144,39 +167,30 @@
     <div id="bottom-tags"></div>
   </div>
 
-  <!-- NUCLEAR -->
   <div class="hex-block">
     <div class="title">Nuclear</div>
-
     <div class="name-block">
       <div id="nuc-top"></div>
       <div id="nuc-eng"></div>
     </div>
-
     <div id="nuclear"></div>
     <div id="nuc-notes" class="notes"></div>
-
     <input type="radio" name="hex" onclick="selectHex('nuc')">
   </div>
 
-  <!-- OUTCOME -->
   <div class="hex-block">
     <div class="title">Outcome</div>
-
     <div class="name-block">
       <div id="out-top"></div>
       <div id="out-eng"></div>
     </div>
-
     <div id="outcome"></div>
     <div id="out-notes" class="notes"></div>
-
     <input type="radio" name="hex" onclick="selectHex('out')">
   </div>
 
 </div>
 
-<!-- INFO -->
 <div class="info-section">
 
   <div class="collapsible" onclick="toggleInfo()">Hexagram Info ▼</div>
@@ -189,6 +203,9 @@
   <div id="formula-list"></div>
 
 </div>
+
+<!-- POPUP -->
+<div id="popup" class="popup hidden"></div>
 
 <script>
 
@@ -234,10 +251,10 @@ async function loadFormulas(){
 
   const res = await fetch(url);
   const text = await res.text();
-
   const json = JSON.parse(text.substring(47).slice(0, -2));
 
   formulaData = json.table.rows.map(r => ({
+    raw: r.c,
     name: r.c[0]?.v || "",
     category: r.c[3]?.v || "Other",
     meridians: r.c[4]?.v || ""
@@ -267,72 +284,86 @@ function renderFormulas(){
 
     grouped[cat].forEach(f=>{
 
-      const item=document.createElement("div");
-      item.className="formula-item";
-      item.innerText=f.name;
-      c.appendChild(item);
+      const row=document.createElement("div");
+      row.className="formula-row";
 
-      const merRow=document.createElement("div");
-      merRow.className="meridian-row";
+      const name=document.createElement("div");
+      name.className="formula-name";
+      name.innerText=f.name;
+
+      const tags=document.createElement("div");
+      tags.className="formula-tags";
 
       f.meridians.split(",").forEach(m=>{
         let tag=document.createElement("span");
         tag.className="tag";
         tag.innerText=m.trim();
-        merRow.appendChild(tag);
+        tags.appendChild(tag);
       });
 
-      c.appendChild(merRow);
+      row.append(name,tags);
+
+      row.onclick=()=>showPopup(f);
+
+      c.appendChild(row);
     });
   });
 }
 
-function findHex(a){
-  return hexData.find(h=>h.binary===getBinary(a));
+function showPopup(f){
+
+  const popup=document.getElementById("popup");
+  popup.innerHTML="";
+
+  f.raw.slice(0,16).forEach((cell,i)=>{
+    if(cell && cell.v){
+      let div=document.createElement("div");
+      div.innerText=`${String.fromCharCode(65+i)}: ${cell.v}`;
+      popup.appendChild(div);
+    }
+  });
+
+  let close=document.createElement("button");
+  close.innerText="Close";
+  close.onclick=()=>popup.classList.add("hidden");
+
+  popup.appendChild(close);
+
+  popup.classList.remove("hidden");
 }
 
-function getNuclear(a){
-  return [a[1],a[2],a[3],a[2],a[3],a[4]];
-}
+/* KEEP REST SAME */
 
-function getOutcome(a){
-  return a.map((v,i)=>moving[i]?(v?0:1):v);
-}
+function findHex(a){return hexData.find(h=>h.binary===getBinary(a));}
+function getNuclear(a){return [a[1],a[2],a[3],a[2],a[3],a[4]];}
+function getOutcome(a){return a.map((v,i)=>moving[i]?(v?0:1):v);}
 
 function update(){
-
   const orig=findHex(lines);
   const nuc=findHex(getNuclear(lines));
   const out=findHex(getOutcome(lines));
-
   currentHex={orig,nuc,out};
 
   if(orig){
-    document.getElementById("orig-top").innerText =
-      `${orig.number} ${orig.chinese} ${orig.pinyin}`;
-    document.getElementById("orig-eng").innerText = orig.english;
-
+    document.getElementById("orig-top").innerText=`${orig.number} ${orig.chinese} ${orig.pinyin}`;
+    document.getElementById("orig-eng").innerText=orig.english;
     document.getElementById("top-trigram").innerText=orig.top;
     document.getElementById("bottom-trigram").innerText=orig.bottom;
-
     renderTags("top-tags",orig.topM);
     renderTags("bottom-tags",orig.bottomM);
-
     document.getElementById("orig-notes").innerText=orig.notes;
   }
 
   if(nuc){
-    document.getElementById("nuc-top").innerText =
-      `${nuc.number} ${nuc.chinese} ${nuc.pinyin}`;
-    document.getElementById("nuc-eng").innerText = nuc.english;
-    document.getElementById("nuc-notes").innerText = nuc.notes;
+    document.getElementById("nuc-top").innerText=`${nuc.number} ${nuc.chinese} ${nuc.pinyin}`;
+    document.getElementById("nuc-eng").innerText=nuc.english;
+    document.getElementById("nuc-notes").innerText=nuc.notes;
   }
 
   if(out){
-    document.getElementById("out-top").innerText =
-      `${out.number} ${out.chinese} ${out.pinyin}`;
-    document.getElementById("out-eng").innerText = out.english;
-    document.getElementById("out-notes").innerText = out.notes;
+    document.getElementById("out-top").innerText=`${out.number} ${out.chinese} ${out.pinyin}`;
+    document.getElementById("out-eng").innerText=out.english;
+    document.getElementById("out-notes").innerText=out.notes;
   }
 
   drawHex("original",lines,true);
@@ -346,7 +377,6 @@ function renderTags(id,text){
   const c=document.getElementById(id);
   c.innerHTML="";
   if(!text) return;
-
   text.split(",").forEach(t=>{
     let tag=document.createElement("span");
     tag.className="tag";
@@ -356,17 +386,13 @@ function renderTags(id,text){
 }
 
 function drawHex(id,arr,interactive=false){
-
   const c=document.getElementById(id);
   c.innerHTML="";
-
   for(let i=5;i>=0;i--){
     let row=document.createElement("div");
     row.className="row";
-
     let left=document.createElement("div");
     left.className="marker";
-
     if(interactive){
       let circle=document.createElement("div");
       circle.className="circle";
@@ -374,17 +400,13 @@ function drawHex(id,arr,interactive=false){
       left.appendChild(circle);
       left.onclick=()=>{moving[i]=!moving[i];update();};
     }
-
     let line=document.createElement("div");
     line.className="line "+(arr[i]?"yang":"yin");
-
     if(interactive){
       line.onclick=()=>{lines[i]=lines[i]?0:1;update();};
     }
-
     let right=document.createElement("div");
     right.className="marker";
-
     row.append(left,line,right);
     c.appendChild(row);
   }
@@ -393,10 +415,8 @@ function drawHex(id,arr,interactive=false){
 function selectHex(type){
   const hex=currentHex[type];
   if(!hex) return;
-
   const info=document.getElementById("info");
   info.innerHTML="";
-
   hex.info.forEach(i=>{
     if(i){
       let div=document.createElement("div");
