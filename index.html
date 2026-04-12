@@ -22,6 +22,8 @@
 
     .hex-block { width: 200px; }
 
+    .title { font-weight: bold; margin-bottom: 6px; }
+
     .row {
       display: flex;
       justify-content: center;
@@ -34,7 +36,6 @@
       width: 30px;
       display: flex;
       justify-content: center;
-      align-items: center;
     }
 
     .circle {
@@ -56,11 +57,10 @@
       background: linear-gradient(to right, black 40%, white 40%, white 60%, black 60%);
     }
 
-    .trigram { font-size: 34px; font-weight: bold; }
-
     .notes {
       font-size: 12px;
       margin-top: 6px;
+      min-height: 20px;
     }
 
     .info-section {
@@ -72,6 +72,14 @@
       margin-right: auto;
       text-align: left;
     }
+
+    .collapsible {
+      cursor: pointer;
+      font-weight: bold;
+      margin-bottom: 10px;
+    }
+
+    .hidden { display: none; }
 
   </style>
 </head>
@@ -87,32 +95,28 @@
 
   <!-- ORIGINAL -->
   <div class="hex-block">
+    <div class="title">Original</div>
     <div id="orig-num"></div>
     <div id="original"></div>
     <div id="orig-notes" class="notes"></div>
-    <input type="radio" name="hex" onclick="selectHex('orig')">
-  </div>
-
-  <!-- TRIGRAMS -->
-  <div>
-    <div id="top-trigram" class="trigram"></div>
-
-    <div style="height:40px;"></div>
-
-    <div id="bottom-trigram" class="trigram"></div>
+    <input type="radio" name="hex" id="radio-orig" checked onclick="selectHex('orig')">
   </div>
 
   <!-- NUCLEAR -->
   <div class="hex-block">
+    <div class="title">Nuclear</div>
     <div id="nuc-num"></div>
     <div id="nuclear"></div>
+    <div id="nuc-notes" class="notes"></div>
     <input type="radio" name="hex" onclick="selectHex('nuc')">
   </div>
 
   <!-- OUTCOME -->
   <div class="hex-block">
+    <div class="title">Outcome</div>
     <div id="out-num"></div>
     <div id="outcome"></div>
+    <div id="out-notes" class="notes"></div>
     <input type="radio" name="hex" onclick="selectHex('out')">
   </div>
 
@@ -121,11 +125,14 @@
 <!-- INFO -->
 <div class="info-section">
 
-  <h3>Hexagram Info</h3>
-  <div id="info"></div>
+  <div class="collapsible" onclick="toggleInfo()">Hexagram Info ▼</div>
 
-  <h3>Formulas</h3>
-  <div id="formula-list"></div>
+  <div id="info-content">
+    <div id="info"></div>
+
+    <h3>Formulas</h3>
+    <div id="formula-list"></div>
+  </div>
 
 </div>
 
@@ -156,9 +163,8 @@ async function loadHex(){
     number: r.c[0].v,
     binary: String(r.c[1].v).padStart(6,"0"),
     pinyin: r.c[2].v,
+    english: r.c[5]?.v || "",
     chinese: r.c[6]?.v || "",
-    top: r.c[8]?.v || "",
-    bottom: r.c[9]?.v || "",
     notes: r.c[17]?.v || "",
     info: [r.c[18]?.v, r.c[19]?.v, r.c[20]?.v]
   }));
@@ -195,37 +201,35 @@ function getOutcome(arr){
 function update(){
 
   const orig = findHex(lines);
-  const nuclearArr = getNuclear(lines);
-  const outcomeArr = getOutcome(lines);
-
-  const nuc = findHex(nuclearArr);
-  const out = findHex(outcomeArr);
+  const nuc = findHex(getNuclear(lines));
+  const out = findHex(getOutcome(lines));
 
   currentHex = { orig, nuc, out };
 
   if(orig){
     document.getElementById("orig-num").innerText =
-      `${orig.number} ${orig.chinese} ${orig.pinyin}`;
-
-    document.getElementById("top-trigram").innerText = orig.top;
-    document.getElementById("bottom-trigram").innerText = orig.bottom;
-
+      `${orig.number} ${orig.chinese} ${orig.pinyin} — ${orig.english}`;
     document.getElementById("orig-notes").innerText = orig.notes;
   }
 
   if(nuc){
     document.getElementById("nuc-num").innerText =
-      `${nuc.number} ${nuc.chinese} ${nuc.pinyin}`;
+      `${nuc.number} ${nuc.chinese} ${nuc.pinyin} — ${nuc.english}`;
+    document.getElementById("nuc-notes").innerText = nuc.notes;
   }
 
   if(out){
     document.getElementById("out-num").innerText =
-      `${out.number} ${out.chinese} ${out.pinyin}`;
+      `${out.number} ${out.chinese} ${out.pinyin} — ${out.english}`;
+    document.getElementById("out-notes").innerText = out.notes;
   }
 
   drawHex("original", lines, true);
-  drawHex("nuclear", nuclearArr);
-  drawHex("outcome", outcomeArr);
+  drawHex("nuclear", getNuclear(lines));
+  drawHex("outcome", getOutcome(lines));
+
+  // default show original info
+  selectHex("orig");
 }
 
 function drawHex(id, arr, interactive=false){
@@ -288,6 +292,10 @@ function selectHex(type){
   });
 }
 
+function toggleInfo(){
+  document.getElementById("info-content").classList.toggle("hidden");
+}
+
 function renderFormulas(){
 
   const container = document.getElementById("formula-list");
@@ -295,7 +303,6 @@ function renderFormulas(){
 
   formulaData.forEach(f=>{
     let row = document.createElement("div");
-    row.style.margin = "4px 0";
     row.innerText = `${f.name} — ${f.meridians}`;
     container.appendChild(row);
   });
