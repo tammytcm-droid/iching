@@ -349,14 +349,62 @@ function toggleInfo(){
   document.getElementById("info-content").classList.toggle("hidden");
 }
 
-function renderFormulas(){
-  const c=document.getElementById("formula-list");
-  c.innerHTML="";
+// ---------------- FORMULAS (FIXED) ----------------
 
-  formulaData.forEach(f=>{
-    let row=document.createElement("div");
-    row.innerText=`${f.name} — ${f.meridians}`;
-    c.appendChild(row);
+async function loadFormulas(){
+
+  const url = `https://docs.google.com/spreadsheets/d/${FORMULA_SHEET}/gviz/tq?tqx=out:json`;
+
+  const res = await fetch(url);
+  const text = await res.text();
+
+  const json = JSON.parse(text.substr(47).slice(0,-2));
+  const rows = json.table.rows;
+
+  formulaData = [];
+
+  rows.forEach(r => {
+
+    // skip completely empty rows
+    if(!r.c || !r.c[0]) return;
+
+    const name = r.c[0]?.v ? String(r.c[0].v) : "";
+    const meridians = r.c[4]?.v ? String(r.c[4].v) : "";
+
+    // skip if no name
+    if(name.trim() === "") return;
+
+    formulaData.push({
+      name,
+      meridians
+    });
+
+  });
+
+  renderFormulas();
+}
+
+// ---------------- RENDER ----------------
+
+function renderFormulas(){
+
+  const container = document.getElementById("formula-list");
+  container.innerHTML = "";
+
+  if(formulaData.length === 0){
+    container.innerText = "No formulas found.";
+    return;
+  }
+
+  formulaData.forEach(f => {
+
+    const row = document.createElement("div");
+    row.style.margin = "4px 0";
+
+    row.innerText = `${f.name} — ${f.meridians}`;
+
+    container.appendChild(row);
+
   });
 }
 
