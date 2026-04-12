@@ -24,6 +24,11 @@
 
     .title { font-weight: bold; margin-bottom: 6px; }
 
+    .name-block {
+      min-height: 40px;
+      margin-bottom: 6px;
+    }
+
     .row {
       display: flex;
       justify-content: center;
@@ -32,54 +37,56 @@
       margin: 6px 0;
     }
 
-    .marker {
-      width: 30px;
-      display: flex;
-      justify-content: center;
-    }
+    .marker { width: 30px; display:flex; justify-content:center; }
 
     .circle {
       width: 16px;
       height: 16px;
       border-radius: 50%;
       background: #ccc;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      font-size: 10px;
+      display:flex;
+      align-items:center;
+      justify-content:center;
+      font-size:10px;
     }
 
-    .line { width: 110px; height: 12px; margin: 0 6px; cursor: pointer; }
+    .line { width:110px; height:12px; margin:0 6px; cursor:pointer; }
 
-    .yang { background: black; }
+    .yang { background:black; }
 
     .yin {
       background: linear-gradient(to right, black 40%, white 40%, white 60%, black 60%);
     }
 
-    .notes {
-      font-size: 12px;
-      margin-top: 6px;
-      min-height: 20px;
+    .trigram { font-size:36px; font-weight:bold; }
+
+    .tag {
+      display:inline-block;
+      background:#eee;
+      padding:4px 10px;
+      margin:3px;
+      border-radius:12px;
+      font-size:11px;
     }
 
+    .notes { font-size:12px; margin-top:6px; }
+
     .info-section {
-      margin-top: 30px;
-      border-top: 1px solid #ccc;
-      padding-top: 15px;
-      width: 700px;
-      margin-left: auto;
-      margin-right: auto;
-      text-align: left;
+      margin-top:30px;
+      border-top:1px solid #ccc;
+      padding-top:15px;
+      width:700px;
+      margin-left:auto;
+      margin-right:auto;
+      text-align:left;
     }
 
     .collapsible {
-      cursor: pointer;
-      font-weight: bold;
-      margin-bottom: 10px;
+      cursor:pointer;
+      font-weight:bold;
     }
 
-    .hidden { display: none; }
+    .hidden { display:none; }
 
   </style>
 </head>
@@ -96,27 +103,56 @@
   <!-- ORIGINAL -->
   <div class="hex-block">
     <div class="title">Original</div>
-    <div id="orig-num"></div>
+
+    <div class="name-block">
+      <div id="orig-top"></div>
+      <div id="orig-eng"></div>
+    </div>
+
     <div id="original"></div>
     <div id="orig-notes" class="notes"></div>
-    <input type="radio" name="hex" id="radio-orig" checked onclick="selectHex('orig')">
+
+    <input type="radio" name="hex" checked onclick="selectHex('orig')">
+  </div>
+
+  <!-- TRIGRAMS -->
+  <div>
+    <div id="top-trigram" class="trigram"></div>
+    <div id="top-tags"></div>
+
+    <div style="height:40px;"></div>
+
+    <div id="bottom-trigram" class="trigram"></div>
+    <div id="bottom-tags"></div>
   </div>
 
   <!-- NUCLEAR -->
   <div class="hex-block">
     <div class="title">Nuclear</div>
-    <div id="nuc-num"></div>
+
+    <div class="name-block">
+      <div id="nuc-top"></div>
+      <div id="nuc-eng"></div>
+    </div>
+
     <div id="nuclear"></div>
     <div id="nuc-notes" class="notes"></div>
+
     <input type="radio" name="hex" onclick="selectHex('nuc')">
   </div>
 
   <!-- OUTCOME -->
   <div class="hex-block">
     <div class="title">Outcome</div>
-    <div id="out-num"></div>
+
+    <div class="name-block">
+      <div id="out-top"></div>
+      <div id="out-eng"></div>
+    </div>
+
     <div id="outcome"></div>
     <div id="out-notes" class="notes"></div>
+
     <input type="radio" name="hex" onclick="selectHex('out')">
   </div>
 
@@ -138,137 +174,153 @@
 
 <script>
 
-let lines = [1,1,1,1,1,1];
-let moving = [false,false,false,false,false,false];
+let lines=[1,1,1,1,1,1];
+let moving=[false,false,false,false,false,false];
 
-let currentHex = {};
+let currentHex={};
 
-const HEX_SHEET = "1eYJ26LpAL3XV9l95-6r4nEvR3m_ksITatkMH4eKxlN4";
-const FORMULA_SHEET = "1aHGUMyg-524vwzfcEcs8JPFePnbj5Ss06QI7o7T8UqU";
+const HEX_SHEET="1eYJ26LpAL3XV9l95-6r4nEvR3m_ksITatkMH4eKxlN4";
+const FORMULA_SHEET="1aHGUMyg-524vwzfcEcs8JPFePnbj5Ss06QI7o7T8UqU";
 
-let hexData = [];
-let formulaData = [];
+let hexData=[];
+let formulaData=[];
 
-function getBinary(arr){
-  return arr.join("");
-}
+function getBinary(a){ return a.join(""); }
 
 async function loadHex(){
-  const url = `https://docs.google.com/spreadsheets/d/${HEX_SHEET}/gviz/tq?tqx=out:json`;
-  const res = await fetch(url);
-  const text = await res.text();
-  const json = JSON.parse(text.substr(47).slice(0,-2));
+  const url=`https://docs.google.com/spreadsheets/d/${HEX_SHEET}/gviz/tq?tqx=out:json`;
+  const res=await fetch(url);
+  const text=await res.text();
+  const json=JSON.parse(text.substr(47).slice(0,-2));
 
-  hexData = json.table.rows.map(r => ({
-    number: r.c[0].v,
-    binary: String(r.c[1].v).padStart(6,"0"),
-    pinyin: r.c[2].v,
-    english: r.c[5]?.v || "",
-    chinese: r.c[6]?.v || "",
-    notes: r.c[17]?.v || "",
-    info: [r.c[18]?.v, r.c[19]?.v, r.c[20]?.v]
+  hexData=json.table.rows.map(r=>({
+    number:r.c[0].v,
+    binary:String(r.c[1].v).padStart(6,"0"),
+    pinyin:r.c[2].v,
+    english:r.c[5]?.v||"",
+    chinese:r.c[6]?.v||"",
+    top:r.c[8]?.v||"",
+    bottom:r.c[9]?.v||"",
+    topM:r.c[10]?.v||"",
+    bottomM:r.c[11]?.v||"",
+    notes:r.c[17]?.v||"",
+    info:[r.c[18]?.v,r.c[19]?.v,r.c[20]?.v]
   }));
 
   update();
 }
 
 async function loadFormulas(){
-  const url = `https://docs.google.com/spreadsheets/d/${FORMULA_SHEET}/gviz/tq?tqx=out:json`;
-  const res = await fetch(url);
-  const text = await res.text();
-  const json = JSON.parse(text.substr(47).slice(0,-2));
+  const url=`https://docs.google.com/spreadsheets/d/${FORMULA_SHEET}/gviz/tq?tqx=out:json`;
+  const res=await fetch(url);
+  const text=await res.text();
+  const json=JSON.parse(text.substr(47).slice(0,-2));
 
-  formulaData = json.table.rows.map(r => ({
-    name: r.c[0]?.v || "",
-    meridians: r.c[4]?.v || ""
+  formulaData=json.table.rows.map(r=>({
+    name:r.c[0]?.v||"",
+    meridians:r.c[4]?.v||""
   }));
 
   renderFormulas();
 }
 
-function findHex(arr){
-  return hexData.find(h => h.binary === getBinary(arr));
+function findHex(a){
+  return hexData.find(h=>h.binary===getBinary(a));
 }
 
-function getNuclear(arr){
-  return [arr[1],arr[2],arr[3],arr[2],arr[3],arr[4]];
+function getNuclear(a){
+  return [a[1],a[2],a[3],a[2],a[3],a[4]];
 }
 
-function getOutcome(arr){
-  return arr.map((v,i)=> moving[i] ? (v?0:1) : v);
+function getOutcome(a){
+  return a.map((v,i)=>moving[i]?(v?0:1):v);
 }
 
 function update(){
 
-  const orig = findHex(lines);
-  const nuc = findHex(getNuclear(lines));
-  const out = findHex(getOutcome(lines));
+  const orig=findHex(lines);
+  const nuc=findHex(getNuclear(lines));
+  const out=findHex(getOutcome(lines));
 
-  currentHex = { orig, nuc, out };
+  currentHex={orig,nuc,out};
 
   if(orig){
-    document.getElementById("orig-num").innerText =
-      `${orig.number} ${orig.chinese} ${orig.pinyin} — ${orig.english}`;
-    document.getElementById("orig-notes").innerText = orig.notes;
+    document.getElementById("orig-top").innerText=
+      `${orig.number} ${orig.chinese} ${orig.pinyin}`;
+    document.getElementById("orig-eng").innerText=orig.english;
+
+    document.getElementById("top-trigram").innerText=orig.top;
+    document.getElementById("bottom-trigram").innerText=orig.bottom;
+
+    renderTags("top-tags",orig.topM);
+    renderTags("bottom-tags",orig.bottomM);
+
+    document.getElementById("orig-notes").innerText=orig.notes;
   }
 
   if(nuc){
-    document.getElementById("nuc-num").innerText =
-      `${nuc.number} ${nuc.chinese} ${nuc.pinyin} — ${nuc.english}`;
-    document.getElementById("nuc-notes").innerText = nuc.notes;
+    document.getElementById("nuc-top").innerText=
+      `${nuc.number} ${nuc.chinese} ${nuc.pinyin}`;
+    document.getElementById("nuc-eng").innerText=nuc.english;
+    document.getElementById("nuc-notes").innerText=nuc.notes;
   }
 
   if(out){
-    document.getElementById("out-num").innerText =
-      `${out.number} ${out.chinese} ${out.pinyin} — ${out.english}`;
-    document.getElementById("out-notes").innerText = out.notes;
+    document.getElementById("out-top").innerText=
+      `${out.number} ${out.chinese} ${out.pinyin}`;
+    document.getElementById("out-eng").innerText=out.english;
+    document.getElementById("out-notes").innerText=out.notes;
   }
 
-  drawHex("original", lines, true);
-  drawHex("nuclear", getNuclear(lines));
-  drawHex("outcome", getOutcome(lines));
+  drawHex("original",lines,true);
+  drawHex("nuclear",getNuclear(lines));
+  drawHex("outcome",getOutcome(lines));
 
-  // default show original info
   selectHex("orig");
 }
 
-function drawHex(id, arr, interactive=false){
+function renderTags(id,text){
+  const c=document.getElementById(id);
+  c.innerHTML="";
+  if(!text) return;
 
-  const c = document.getElementById(id);
-  c.innerHTML = "";
+  text.split(",").forEach(t=>{
+    let tag=document.createElement("span");
+    tag.className="tag";
+    tag.innerText=t.trim();
+    c.appendChild(tag);
+  });
+}
+
+function drawHex(id,arr,interactive=false){
+
+  const c=document.getElementById(id);
+  c.innerHTML="";
 
   for(let i=5;i>=0;i--){
+    let row=document.createElement("div");
+    row.className="row";
 
-    let row = document.createElement("div");
-    row.className = "row";
-
-    let left = document.createElement("div");
-    left.className = "marker";
+    let left=document.createElement("div");
+    left.className="marker";
 
     if(interactive){
-      let circle = document.createElement("div");
-      circle.className = "circle";
-      if(moving[i]) circle.innerText = arr[i] ? "O" : "X";
+      let circle=document.createElement("div");
+      circle.className="circle";
+      if(moving[i]) circle.innerText=arr[i]?"O":"X";
       left.appendChild(circle);
-
-      left.onclick = () => {
-        moving[i] = !moving[i];
-        update();
-      };
+      left.onclick=()=>{moving[i]=!moving[i];update();};
     }
 
-    let line = document.createElement("div");
-    line.className = "line " + (arr[i] ? "yang" : "yin");
+    let line=document.createElement("div");
+    line.className="line "+(arr[i]?"yang":"yin");
 
     if(interactive){
-      line.onclick = () => {
-        lines[i] = lines[i] ? 0 : 1;
-        update();
-      };
+      line.onclick=()=>{lines[i]=lines[i]?0:1;update();};
     }
 
-    let right = document.createElement("div");
-    right.className = "marker";
+    let right=document.createElement("div");
+    right.className="marker";
 
     row.append(left,line,right);
     c.appendChild(row);
@@ -276,17 +328,16 @@ function drawHex(id, arr, interactive=false){
 }
 
 function selectHex(type){
-
-  const hex = currentHex[type];
+  const hex=currentHex[type];
   if(!hex) return;
 
-  const info = document.getElementById("info");
-  info.innerHTML = "";
+  const info=document.getElementById("info");
+  info.innerHTML="";
 
   hex.info.forEach(i=>{
     if(i){
-      let div = document.createElement("div");
-      div.innerText = i;
+      let div=document.createElement("div");
+      div.innerText=i;
       info.appendChild(div);
     }
   });
@@ -297,20 +348,19 @@ function toggleInfo(){
 }
 
 function renderFormulas(){
-
-  const container = document.getElementById("formula-list");
-  container.innerHTML = "";
+  const c=document.getElementById("formula-list");
+  c.innerHTML="";
 
   formulaData.forEach(f=>{
-    let row = document.createElement("div");
-    row.innerText = `${f.name} — ${f.meridians}`;
-    container.appendChild(row);
+    let row=document.createElement("div");
+    row.innerText=`${f.name} — ${f.meridians}`;
+    c.appendChild(row);
   });
 }
 
 function randomHexagram(){
-  lines = Array.from({length:6},()=>Math.random()>0.5?1:0);
-  moving = Array.from({length:6},()=>Math.random()>0.5);
+  lines=Array.from({length:6},()=>Math.random()>0.5?1:0);
+  moving=Array.from({length:6},()=>Math.random()>0.5);
   update();
 }
 
