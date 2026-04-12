@@ -4,18 +4,9 @@
   <title>I Ching App</title>
 
   <style>
-    body {
-      font-family: Arial;
-      text-align: center;
-    }
+    body { font-family: Arial; text-align: center; }
 
-    h2 { margin-top: 10px; }
-
-    button {
-      margin: 10px;
-      padding: 6px 12px;
-      cursor: pointer;
-    }
+    button { margin: 10px; padding: 6px 12px; cursor: pointer; }
 
     .container {
       display: flex;
@@ -25,21 +16,8 @@
       align-items: flex-start;
     }
 
-    .hex-block {
-      text-align: center;
-      width: 200px;
-    }
+    .hex-block { width: 200px; }
 
-    .title {
-      font-weight: bold;
-      margin-bottom: 12px;
-    }
-
-    .subtitle {
-      margin-bottom: 6px;
-    }
-
-    /* 🔥 PERFECT ALIGNMENT */
     .row {
       display: flex;
       justify-content: center;
@@ -50,8 +28,6 @@
 
     .marker {
       width: 30px;
-      text-align: center;
-      font-weight: bold;
       display: flex;
       justify-content: center;
       align-items: center;
@@ -68,12 +44,7 @@
       font-size: 10px;
     }
 
-    .line {
-      width: 110px;
-      height: 12px;
-      margin: 0 6px;
-      cursor: pointer;
-    }
+    .line { width: 110px; height: 12px; margin: 0 6px; cursor: pointer; }
 
     .yang { background: black; }
 
@@ -81,47 +52,47 @@
       background: linear-gradient(to right, black 40%, white 40%, white 60%, black 60%);
     }
 
-    .tags {
-      margin-top: 8px;
-      min-height: 24px;
-    }
+    /* 🔺 BIGGER TRIGRAMS */
+    .trigram { font-size: 34px; font-weight: bold; }
 
+    .tags { margin-top: 8px; }
     .tag {
       display: inline-block;
       background: #eee;
       border-radius: 12px;
-      padding: 3px 8px;
-      margin: 2px;
+      padding: 4px 10px;
+      margin: 3px;
       font-size: 11px;
+      cursor: pointer;
     }
 
-    .radio {
-      margin-top: 10px;
+    .tag.active {
+      background: black;
+      color: white;
     }
 
-    /* 🔥 TRIGRAM COLUMN */
-    .trigram-block {
-      width: 180px;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
+    .notes {
+      font-size: 12px;
+      margin-top: 6px;
+      min-height: 20px;
     }
 
-    /* 🔥 BIGGER TRIGRAMS */
-    .trigram {
-      font-size: 28px;
-      font-weight: bold;
-      margin-bottom: 6px;
+    .info-section {
+      margin-top: 30px;
+      border-top: 1px solid #ccc;
+      padding-top: 15px;
+      width: 600px;
+      margin-left: auto;
+      margin-right: auto;
+      text-align: left;
     }
 
-    .top-trigram {
-      margin-top: 10px;
-      margin-bottom: 30px;
+    .collapse-btn {
+      cursor: pointer;
+      margin-bottom: 10px;
     }
 
-    .bottom-trigram {
-      margin-top: 40px;
-    }
+    .hidden { display: none; }
 
   </style>
 </head>
@@ -135,56 +106,50 @@
 
 <div class="container">
 
-  <!-- ORIGINAL -->
   <div class="hex-block">
-    <div class="title">Original</div>
-    <div id="orig-num" class="subtitle"></div>
-    <div id="orig-eng" class="subtitle"></div>
+    <div id="orig-num"></div>
     <div id="original"></div>
     <div id="orig-tags" class="tags"></div>
-    <div class="radio">
-      <input type="radio" name="hex-select">
-    </div>
+    <div id="orig-notes" class="notes"></div>
+    <input type="radio" name="hex" onclick="selectHex('orig')">
   </div>
 
-  <!-- TRIGRAMS -->
-  <div class="trigram-block">
+  <div>
+    <div id="top-trigram" class="trigram"></div>
+    <div id="top-tags" class="tags"></div>
 
-    <div class="top-trigram">
-      <div id="top-trigram" class="trigram"></div>
-      <div id="top-tags" class="tags"></div>
-    </div>
+    <div style="height:40px;"></div>
 
-    <div class="bottom-trigram">
-      <div id="bottom-trigram" class="trigram"></div>
-      <div id="bottom-tags" class="tags"></div>
-    </div>
-
+    <div id="bottom-trigram" class="trigram"></div>
+    <div id="bottom-tags" class="tags"></div>
   </div>
 
-  <!-- NUCLEAR -->
   <div class="hex-block">
-    <div class="title">Nuclear</div>
-    <div id="nuc-num" class="subtitle"></div>
-    <div id="nuc-eng" class="subtitle"></div>
+    <div id="nuc-num"></div>
     <div id="nuclear"></div>
     <div id="nuc-tags" class="tags"></div>
-    <div class="radio">
-      <input type="radio" name="hex-select">
-    </div>
+    <div id="nuc-notes" class="notes"></div>
+    <input type="radio" name="hex" onclick="selectHex('nuc')">
   </div>
 
-  <!-- OUTCOME -->
   <div class="hex-block">
-    <div class="title">Outcome</div>
-    <div id="out-num" class="subtitle"></div>
-    <div id="out-eng" class="subtitle"></div>
+    <div id="out-num"></div>
     <div id="outcome"></div>
     <div id="out-tags" class="tags"></div>
-    <div class="radio">
-      <input type="radio" name="hex-select">
-    </div>
+    <div id="out-notes" class="notes"></div>
+    <input type="radio" name="hex" onclick="selectHex('out')">
   </div>
+
+</div>
+
+<!-- 📖 INFO PANEL -->
+<div class="info-section">
+
+  <div class="collapse-btn" onclick="toggleInfo()">
+    ▶ Toggle Hexagram Info
+  </div>
+
+  <div id="info-content" class="hidden"></div>
 
 </div>
 
@@ -193,168 +158,155 @@
 let lines = [1,1,1,1,1,1];
 let moving = [false,false,false,false,false,false];
 
-let subjectLine = null;
-let objectLine = null;
+let selectedTags = new Set();
+let currentHex = null;
 
 const SHEET_ID = "1eYJ26LpAL3XV9l95-6r4nEvR3m_ksITatkMH4eKxlN4";
 
-let hexagramData = [];
+let data = [];
 
-function getBinary(arr) {
-  return arr.join("");
-}
+function getBinary(a){ return a.join(""); }
 
-async function loadData() {
+async function loadData(){
   const url = `https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq?tqx=out:json`;
   const res = await fetch(url);
   const text = await res.text();
-  const json = JSON.parse(text.substr(47).slice(0, -2));
-  const rows = json.table.rows;
+  const json = JSON.parse(text.substr(47).slice(0,-2));
 
-  hexagramData = rows.map(r => ({
-    number: r.c[0].v,
-    binary: String(r.c[1].v).padStart(6, "0"),
-    pinyin: r.c[2].v,
-    subject: Number(r.c[3].v),
-    object: Number(r.c[4].v),
-    english: r.c[5]?.v || "",
-    chinese: r.c[6]?.v || "",
-    meridians: r.c[7]?.v || "",
-    topTrigram: r.c[8]?.v || "",
-    bottomTrigram: r.c[9]?.v || "",
-    topMeridians: r.c[10]?.v || "",
-    bottomMeridians: r.c[11]?.v || ""
+  data = json.table.rows.map(r => ({
+    number:r.c[0].v,
+    binary:String(r.c[1].v).padStart(6,"0"),
+    pinyin:r.c[2].v,
+    subject:r.c[3].v,
+    object:r.c[4].v,
+    english:r.c[5]?.v||"",
+    chinese:r.c[6]?.v||"",
+    meridians:r.c[7]?.v||"",
+    top:r.c[8]?.v||"",
+    bottom:r.c[9]?.v||"",
+    topM:r.c[10]?.v||"",
+    bottomM:r.c[11]?.v||"",
+    notes:r.c[17]?.v||"",
+    info:[r.c[18]?.v,r.c[19]?.v,r.c[20]?.v,r.c[21]?.v,r.c[22]?.v]
   }));
 
   update();
 }
 
-function findHexagram(arr) {
-  return hexagramData.find(h => h.binary === getBinary(arr));
+function findHex(a){
+  return data.find(h=>h.binary===getBinary(a));
 }
 
-function getNuclear(arr) {
-  return [arr[1],arr[2],arr[3],arr[2],arr[3],arr[4]];
-}
+function renderTags(id,text){
+  const c=document.getElementById(id);
+  c.innerHTML="";
+  if(!text)return;
 
-function getOutcome(arr) {
-  return arr.map((v,i) => moving[i] ? (v ? 0 : 1) : v);
-}
+  text.split(",").forEach(t=>{
+    let tag=document.createElement("span");
+    tag.className="tag";
+    tag.innerText=t.trim();
 
-function renderTags(id, text) {
-  const c = document.getElementById(id);
-  c.innerHTML = "";
-  if (!text) return;
+    if(selectedTags.has(t.trim())) tag.classList.add("active");
 
-  text.split(",").forEach(t => {
-    let tag = document.createElement("span");
-    tag.className = "tag";
-    tag.innerText = t.trim();
+    tag.onclick=()=>{
+      if(selectedTags.has(t.trim())) selectedTags.delete(t.trim());
+      else selectedTags.add(t.trim());
+      update();
+    };
+
     c.appendChild(tag);
   });
 }
 
-function setLabels(id, hex) {
-  if (!hex) return;
+function update(){
+
+  const orig=findHex(lines);
+  const nuc=findHex([lines[1],lines[2],lines[3],lines[2],lines[3],lines[4]]);
+  const out=findHex(lines.map((v,i)=>moving[i]?(v?0:1):v));
+
+  currentHex={orig,nuc,out};
+
+  if(orig){
+    document.getElementById("top-trigram").innerText=orig.top;
+    document.getElementById("bottom-trigram").innerText=orig.bottom;
+    renderTags("top-tags",orig.topM);
+    renderTags("bottom-tags",orig.bottomM);
+  }
+
+  renderHex("orig",orig,lines,true);
+  renderHex("nuc",nuc,[lines[1],lines[2],lines[3],lines[2],lines[3],lines[4]]);
+  renderHex("out",out,lines.map((v,i)=>moving[i]?(v?0:1):v));
+}
+
+function renderHex(id,hex,arr,interactive=false){
 
   document.getElementById(id+"-num").innerText =
-    `${hex.number} ${hex.chinese} ${hex.pinyin}`;
-  document.getElementById(id+"-eng").innerText = hex.english;
+    hex ? `${hex.number} ${hex.chinese} ${hex.pinyin}` : "";
 
-  renderTags(id+"-tags", hex.meridians);
-}
+  renderTags(id+"-tags",hex?.meridians);
+  document.getElementById(id+"-notes").innerText = hex?.notes || "";
 
-function update() {
-  const orig = findHexagram(lines);
-  const nuclearArr = getNuclear(lines);
-  const outcomeArr = getOutcome(lines);
+  const c=document.getElementById(id==="orig"?"original":id==="nuc"?"nuclear":"outcome");
+  c.innerHTML="";
 
-  const nuclear = findHexagram(nuclearArr);
-  const outcome = findHexagram(outcomeArr);
+  for(let i=5;i>=0;i--){
+    let row=document.createElement("div");
+    row.className="row";
 
-  if (orig) {
-    subjectLine = orig.subject;
-    objectLine = orig.object;
+    let left=document.createElement("div");
+    left.className="marker";
 
-    document.getElementById("top-trigram").innerText = orig.topTrigram;
-    document.getElementById("bottom-trigram").innerText = orig.bottomTrigram;
+    if(interactive){
+      let circle=document.createElement("div");
+      circle.className="circle";
+      if(moving[i]) circle.innerText=arr[i]?"O":"X";
+      left.appendChild(circle);
+      left.onclick=()=>{moving[i]=!moving[i];update();}
+    }
 
-    renderTags("top-tags", orig.topMeridians);
-    renderTags("bottom-tags", orig.bottomMeridians);
-  }
+    let line=document.createElement("div");
+    line.className="line "+(arr[i]?"yang":"yin");
+    if(interactive) line.onclick=()=>{lines[i]=lines[i]?0:1;update();}
 
-  setLabels("orig", orig);
-  setLabels("nuc", nuclear);
-  setLabels("out", outcome);
+    let right=document.createElement("div");
+    right.className="marker";
 
-  drawOriginal();
-  drawSimple("nuclear", nuclearArr);
-  drawSimple("outcome", outcomeArr);
-}
-
-function drawOriginal() {
-  const c = document.getElementById("original");
-  c.innerHTML = "";
-
-  for (let i = 5; i >= 0; i--) {
-    let row = document.createElement("div");
-    row.className = "row";
-
-    let left = document.createElement("div");
-    left.className = "marker";
-
-    let circle = document.createElement("div");
-    circle.className = "circle";
-    if (moving[i]) circle.innerText = lines[i] ? "O" : "X";
-
-    left.appendChild(circle);
-    left.onclick = () => { moving[i] = !moving[i]; update(); };
-
-    let line = document.createElement("div");
-    line.className = "line " + (lines[i] ? "yang" : "yin");
-    line.onclick = () => { lines[i] = lines[i] ? 0 : 1; update(); };
-
-    let right = document.createElement("div");
-    right.className = "marker";
-    if (i+1 === subjectLine) right.innerText = "S";
-    if (i+1 === objectLine) right.innerText = "O";
-
-    row.append(left, line, right);
+    row.append(left,line,right);
     c.appendChild(row);
   }
 }
 
-function drawSimple(id, arr) {
-  const c = document.getElementById(id);
-  c.innerHTML = "";
+function selectHex(type){
+  let hex=currentHex[type];
+  if(!hex) return;
 
-  for (let i = 5; i >= 0; i--) {
-    let row = document.createElement("div");
-    row.className = "row";
+  let info=document.getElementById("info-content");
+  info.innerHTML="";
 
-    let left = document.createElement("div");
-    left.className = "marker";
-
-    let line = document.createElement("div");
-    line.className = "line " + (arr[i] ? "yang" : "yin");
-
-    let right = document.createElement("div");
-    right.className = "marker";
-
-    row.append(left, line, right);
-    c.appendChild(row);
-  }
+  hex.info.forEach(i=>{
+    if(i){
+      let div=document.createElement("div");
+      div.innerText=i;
+      info.appendChild(div);
+    }
+  });
 }
 
-function randomHexagram() {
-  lines = Array.from({length:6}, () => Math.random() > 0.5 ? 1 : 0);
-  moving = Array.from({length:6}, () => Math.random() > 0.5);
+function toggleInfo(){
+  document.getElementById("info-content").classList.toggle("hidden");
+}
+
+function randomHexagram(){
+  lines=Array.from({length:6},()=>Math.random()>0.5?1:0);
+  moving=Array.from({length:6},()=>Math.random()>0.5);
   update();
 }
 
-function resetAll() {
-  lines = [1,1,1,1,1,1];
-  moving = [false,false,false,false,false,false];
+function resetAll(){
+  lines=[1,1,1,1,1,1];
+  moving=[false,false,false,false,false,false];
+  selectedTags.clear();
   update();
 }
 
