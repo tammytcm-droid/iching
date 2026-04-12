@@ -6,33 +6,51 @@
   <style>
     body { font-family: Arial; text-align: center; }
 
-    button { margin:10px; padding:6px 12px; cursor:pointer; }
+    button {
+      margin: 10px;
+      padding: 6px 12px;
+      cursor: pointer;
+    }
 
     .container {
-      display:flex;
-      justify-content:center;
-      gap:30px;
-      margin-top:20px;
-      align-items:flex-start;
+      display: flex;
+      justify-content: center;
+      gap: 30px;
+      margin-top: 20px;
+      align-items: flex-start;
     }
 
-    .hex-block { width:200px; }
+    .hex-block { width: 200px; }
 
-    .title { font-weight:bold; }
+    .title { font-weight: bold; margin-bottom: 6px; }
 
-    .name-block { min-height:40px; }
+    .name-block {
+      min-height: 40px;
+      margin-bottom: 6px;
+    }
 
-    .row { display:flex; justify-content:center; margin:6px 0; }
+    .row {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      height: 24px;
+      margin: 6px 0;
+    }
 
-    .marker { width:30px; }
+    .marker { width: 30px; display:flex; justify-content:center; }
 
     .circle {
-      width:16px;height:16px;border-radius:50%;
-      background:#ccc;font-size:10px;
-      display:flex;align-items:center;justify-content:center;
+      width: 16px;
+      height: 16px;
+      border-radius: 50%;
+      background: #ccc;
+      display:flex;
+      align-items:center;
+      justify-content:center;
+      font-size:10px;
     }
 
-    .line { width:110px;height:12px;margin:0 6px;cursor:pointer; }
+    .line { width:110px; height:12px; margin:0 6px; cursor:pointer; }
 
     .yang { background:black; }
 
@@ -40,7 +58,9 @@
       background: linear-gradient(to right, black 40%, white 40%, white 60%, black 60%);
     }
 
-    .trigram { font-size:36px; margin-top:40px; }
+    .trigram { font-size:36px; font-weight:bold; }
+
+    .trigram-block { margin-top: 40px; }
 
     .tag {
       display:inline-block;
@@ -49,44 +69,71 @@
       margin:2px;
       border-radius:12px;
       font-size:11px;
-      cursor:pointer;
     }
 
-    .tag.active {
-      background:#333;
-      color:white;
-    }
+    .notes { font-size:12px; margin-top:6px; }
 
     .info-section {
       margin-top:30px;
+      border-top:1px solid #ccc;
+      padding-top:15px;
       width:800px;
       margin-left:auto;
       margin-right:auto;
       text-align:left;
     }
 
-    .formula-row {
-      display:flex;
-      padding:6px;
+    .collapsible {
       cursor:pointer;
+      font-weight:bold;
     }
 
-    .formula-name { width:50%; }
+    .hidden { display:none; }
 
-    .formula-tags { width:50%; display:flex; flex-wrap:wrap; }
+    .formula-category {
+      margin-top: 12px;
+      font-weight: bold;
+    }
 
+    .formula-row {
+      display: flex;
+      align-items: flex-start;
+      padding: 6px;
+      cursor: pointer;
+    }
+
+    .formula-row:hover {
+      background:#f5f5f5;
+    }
+
+    .formula-name {
+      width: 50%;
+    }
+
+    .formula-tags {
+      width: 50%;
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: flex-start;
+    }
+
+    /* POPUP */
     .popup {
-      position:fixed;
-      top:50%;
-      left:50%;
-      transform:translate(-50%,-50%);
-      background:white;
-      padding:20px;
-      width:400px;
-      max-height:500px;
+      position: fixed;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%,-50%);
+      background: white;
+      border: 1px solid #ccc;
+      padding: 20px;
+      width: 400px;
+      max-height: 500px;
       overflow:auto;
-      border:1px solid #ccc;
+      box-shadow: 0 0 10px rgba(0,0,0,0.3);
+      z-index: 999;
     }
+
+    .popup.hidden { display:none; }
 
   </style>
 </head>
@@ -99,110 +146,125 @@
 <button onclick="randomHexagram()">Random</button>
 
 <div class="container">
+
   <div class="hex-block">
     <div class="title">Original</div>
-    <div id="orig-top"></div>
-    <div id="orig-eng"></div>
+    <div class="name-block">
+      <div id="orig-top"></div>
+      <div id="orig-eng"></div>
+    </div>
     <div id="original"></div>
+    <div id="orig-notes" class="notes"></div>
+    <input type="radio" name="hex" checked onclick="selectHex('orig')">
   </div>
 
-  <div>
+  <div class="trigram-block">
     <div id="top-trigram" class="trigram"></div>
+    <div id="top-tags"></div>
+
+    <div style="height:50px;"></div>
+
     <div id="bottom-trigram" class="trigram"></div>
+    <div id="bottom-tags"></div>
   </div>
 
   <div class="hex-block">
     <div class="title">Nuclear</div>
-    <div id="nuc-top"></div>
+    <div class="name-block">
+      <div id="nuc-top"></div>
+      <div id="nuc-eng"></div>
+    </div>
     <div id="nuclear"></div>
+    <div id="nuc-notes" class="notes"></div>
+    <input type="radio" name="hex" onclick="selectHex('nuc')">
   </div>
 
   <div class="hex-block">
     <div class="title">Outcome</div>
-    <div id="out-top"></div>
+    <div class="name-block">
+      <div id="out-top"></div>
+      <div id="out-eng"></div>
+    </div>
     <div id="outcome"></div>
+    <div id="out-notes" class="notes"></div>
+    <input type="radio" name="hex" onclick="selectHex('out')">
   </div>
+
 </div>
 
 <div class="info-section">
 
-<h3>Formulas</h3>
+  <div class="collapsible" onclick="toggleInfo()">Hexagram Info ▼</div>
 
-<div id="filter-bar"></div>
-<button onclick="resetFilter()">Reset Filter</button>
+  <div id="info-content">
+    <div id="info"></div>
+  </div>
 
-<div id="formula-list"></div>
+  <h3>Formulas</h3>
+  <div id="formula-list"></div>
 
 </div>
 
-<div id="popup" class="popup" style="display:none;"></div>
+<div id="popup" class="popup hidden"></div>
 
 <script>
 
-let formulaHeaders=[];
-let formulaData=[];
-let activeFilter=[];
+let lines=[1,1,1,1,1,1];
+let moving=[false,false,false,false,false,false];
 
+let currentHex={};
+
+const HEX_SHEET="1eYJ26LpAL3XV9l95-6r4nEvR3m_ksITatkMH4eKxlN4";
 const FORMULA_SHEET="1aHGUMyg-524vwzfcEcs8JPFePnbj5Ss06QI7o7T8UqU";
+
+let hexData=[];
+let formulaData=[];
+let formulaHeaders=[];
+
+function getBinary(a){ return a.join(""); }
+
+async function loadHex(){
+  const url=`https://docs.google.com/spreadsheets/d/${HEX_SHEET}/gviz/tq?tqx=out:json`;
+  const res=await fetch(url);
+  const text=await res.text();
+  const json=JSON.parse(text.substr(47).slice(0,-2));
+
+  hexData=json.table.rows.map(r=>({
+    number:r.c[0].v,
+    binary:String(r.c[1].v).padStart(6,"0"),
+    pinyin:r.c[2].v,
+    english:r.c[5]?.v||"",
+    chinese:r.c[6]?.v||"",
+    top:r.c[8]?.v||"",
+    bottom:r.c[9]?.v||"",
+    topM:r.c[10]?.v||"",
+    bottomM:r.c[11]?.v||"",
+    notes:r.c[17]?.v||"",
+    info:[r.c[18]?.v,r.c[19]?.v,r.c[20]?.v]
+  }));
+
+  update();
+}
 
 async function loadFormulas(){
 
-  const url=`https://docs.google.com/spreadsheets/d/${FORMULA_SHEET}/gviz/tq?tqx=out:json&gid=282292594`;
-  const res=await fetch(url);
-  const text=await res.text();
-  const json=JSON.parse(text.substring(47).slice(0,-2));
+  const url = `https://docs.google.com/spreadsheets/d/${FORMULA_SHEET}/gviz/tq?tqx=out:json&gid=282292594`;
 
-  const rows=json.table.rows;
+  const res = await fetch(url);
+  const text = await res.text();
+  const json = JSON.parse(text.substring(47).slice(0, -2));
 
-  formulaHeaders=rows[0].c.map(c=>c?.v||"");
+  const rows = json.table.rows;
 
-  formulaData=rows.slice(1).map(r=>({
-    raw:r.c,
-    name:r.c[0]?.v||"",
-    category:r.c[3]?.v||"",
-    meridians:r.c[4]?.v||""
-  })).filter(f=>f.name);
+  formulaHeaders = rows[0].c.map(c => c?.v || "");
 
-  buildFilter();
-  renderFormulas();
-}
+  formulaData = rows.slice(1).map(r => ({
+    raw: r.c,
+    name: r.c[0]?.v || "",
+    category: r.c[3]?.v || "Other",
+    meridians: r.c[4]?.v || ""
+  })).filter(f => f.name);
 
-function buildFilter(){
-
-  const all=new Set();
-
-  formulaData.forEach(f=>{
-    f.meridians.split(",").forEach(m=>all.add(m.trim()));
-  });
-
-  activeFilter=[...all]; // prefill (you can later swap with hex meridians)
-
-  const bar=document.getElementById("filter-bar");
-  bar.innerHTML="";
-
-  activeFilter.forEach(m=>{
-    let tag=document.createElement("span");
-    tag.className="tag active";
-    tag.innerText=m;
-
-    tag.onclick=()=>{
-      tag.classList.toggle("active");
-
-      if(activeFilter.includes(m)){
-        activeFilter=activeFilter.filter(x=>x!==m);
-      }else{
-        activeFilter.push(m);
-      }
-
-      renderFormulas();
-    };
-
-    bar.appendChild(tag);
-  });
-}
-
-function resetFilter(){
-  buildFilter();
   renderFormulas();
 }
 
@@ -211,32 +273,44 @@ function renderFormulas(){
   const c=document.getElementById("formula-list");
   c.innerHTML="";
 
+  const grouped={};
+
   formulaData.forEach(f=>{
+    if(!grouped[f.category]) grouped[f.category]=[];
+    grouped[f.category].push(f);
+  });
 
-    const match=f.meridians.split(",").some(m=>activeFilter.includes(m.trim()));
-    if(!match) return;
+  Object.keys(grouped).forEach(cat=>{
 
-    const row=document.createElement("div");
-    row.className="formula-row";
+    const header=document.createElement("div");
+    header.className="formula-category";
+    header.innerText=cat;
+    c.appendChild(header);
 
-    const name=document.createElement("div");
-    name.className="formula-name";
-    name.innerText=f.name;
+    grouped[cat].forEach(f=>{
 
-    const tags=document.createElement("div");
-    tags.className="formula-tags";
+      const row=document.createElement("div");
+      row.className="formula-row";
 
-    f.meridians.split(",").forEach(m=>{
-      let tag=document.createElement("span");
-      tag.className="tag";
-      tag.innerText=m.trim();
-      tags.appendChild(tag);
+      const name=document.createElement("div");
+      name.className="formula-name";
+      name.innerText=f.name;
+
+      const tags=document.createElement("div");
+      tags.className="formula-tags";
+
+      f.meridians.split(",").forEach(m=>{
+        let tag=document.createElement("span");
+        tag.className="tag";
+        tag.innerText=m.trim();
+        tags.appendChild(tag);
+      });
+
+      row.append(name,tags);
+      row.onclick=()=>showPopup(f);
+
+      c.appendChild(row);
     });
-
-    row.append(name,tags);
-    row.onclick=()=>showPopup(f);
-
-    c.appendChild(row);
   });
 }
 
@@ -244,23 +318,140 @@ function showPopup(f){
 
   const popup=document.getElementById("popup");
   popup.innerHTML="";
-  popup.style.display="block";
+  popup.style.textAlign="left";
 
-  f.raw.slice(0,17).forEach((cell,i)=>{
+  f.raw.forEach((cell,i)=>{
     if(cell && cell.v){
       let row=document.createElement("div");
-      row.innerHTML=`<b>${formulaHeaders[i]}:</b> ${cell.v}`;
+      row.style.marginBottom="6px";
+
+      let label=formulaHeaders[i] || `Col ${i+1}`;
+      row.innerHTML=`<strong>${label}:</strong> ${cell.v}`;
+
       popup.appendChild(row);
     }
   });
 
   let close=document.createElement("button");
   close.innerText="Close";
-  close.onclick=()=>popup.style.display="none";
+  close.onclick=()=>popup.classList.add("hidden");
 
   popup.appendChild(close);
+
+  popup.classList.remove("hidden");
 }
 
+/* REMAINING CODE UNCHANGED */
+
+function findHex(a){return hexData.find(h=>h.binary===getBinary(a));}
+function getNuclear(a){return [a[1],a[2],a[3],a[2],a[3],a[4]];}
+function getOutcome(a){return a.map((v,i)=>moving[i]?(v?0:1):v);}
+
+function update(){
+  const orig=findHex(lines);
+  const nuc=findHex(getNuclear(lines));
+  const out=findHex(getOutcome(lines));
+  currentHex={orig,nuc,out};
+
+  if(orig){
+    document.getElementById("orig-top").innerText=`${orig.number} ${orig.chinese} ${orig.pinyin}`;
+    document.getElementById("orig-eng").innerText=orig.english;
+    document.getElementById("top-trigram").innerText=orig.top;
+    document.getElementById("bottom-trigram").innerText=orig.bottom;
+    renderTags("top-tags",orig.topM);
+    renderTags("bottom-tags",orig.bottomM);
+    document.getElementById("orig-notes").innerText=orig.notes;
+  }
+
+  if(nuc){
+    document.getElementById("nuc-top").innerText=`${nuc.number} ${nuc.chinese} ${nuc.pinyin}`;
+    document.getElementById("nuc-eng").innerText=nuc.english;
+    document.getElementById("nuc-notes").innerText=nuc.notes;
+  }
+
+  if(out){
+    document.getElementById("out-top").innerText=`${out.number} ${out.chinese} ${out.pinyin}`;
+    document.getElementById("out-eng").innerText=out.english;
+    document.getElementById("out-notes").innerText=out.notes;
+  }
+
+  drawHex("original",lines,true);
+  drawHex("nuclear",getNuclear(lines));
+  drawHex("outcome",getOutcome(lines));
+
+  selectHex("orig");
+}
+
+function renderTags(id,text){
+  const c=document.getElementById(id);
+  c.innerHTML="";
+  if(!text) return;
+  text.split(",").forEach(t=>{
+    let tag=document.createElement("span");
+    tag.className="tag";
+    tag.innerText=t.trim();
+    c.appendChild(tag);
+  });
+}
+
+function drawHex(id,arr,interactive=false){
+  const c=document.getElementById(id);
+  c.innerHTML="";
+  for(let i=5;i>=0;i--){
+    let row=document.createElement("div");
+    row.className="row";
+    let left=document.createElement("div");
+    left.className="marker";
+    if(interactive){
+      let circle=document.createElement("div");
+      circle.className="circle";
+      if(moving[i]) circle.innerText=arr[i]?"O":"X";
+      left.appendChild(circle);
+      left.onclick=()=>{moving[i]=!moving[i];update();};
+    }
+    let line=document.createElement("div");
+    line.className="line "+(arr[i]?"yang":"yin");
+    if(interactive){
+      line.onclick=()=>{lines[i]=lines[i]?0:1;update();};
+    }
+    let right=document.createElement("div");
+    right.className="marker";
+    row.append(left,line,right);
+    c.appendChild(row);
+  }
+}
+
+function selectHex(type){
+  const hex=currentHex[type];
+  if(!hex) return;
+  const info=document.getElementById("info");
+  info.innerHTML="";
+  hex.info.forEach(i=>{
+    if(i){
+      let div=document.createElement("div");
+      div.innerText=i;
+      info.appendChild(div);
+    }
+  });
+}
+
+function toggleInfo(){
+  document.getElementById("info-content").classList.toggle("hidden");
+}
+
+function randomHexagram(){
+  lines=Array.from({length:6},()=>Math.random()>0.5?1:0);
+  moving=Array.from({length:6},()=>Math.random()>0.5);
+  update();
+}
+
+function resetAll(){
+  lines=[1,1,1,1,1,1];
+  moving=[false,false,false,false,false,false];
+  update();
+}
+
+loadHex();
 loadFormulas();
 
 </script>
