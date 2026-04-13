@@ -6,54 +6,47 @@
   <style>
     body { font-family: Arial; text-align: center; }
 
-    button {
-      margin: 10px;
-      padding: 6px 12px;
-      cursor: pointer;
-    }
+    button { margin:10px; padding:6px 12px; cursor:pointer; }
 
     .container {
-      display: flex;
-      justify-content: center;
-      gap: 30px;
-      margin-top: 20px;
-      align-items: flex-start;
+      display:flex;
+      justify-content:center;
+      gap:30px;
+      margin-top:20px;
+      align-items:flex-start;
     }
 
-    .hex-block { width: 200px; }
+    .hex-block { width:200px; }
 
-    .title { font-weight: bold; margin-bottom: 6px; }
+    .title { font-weight:bold; margin-bottom:6px; }
 
-    .name-block { min-height: 40px; margin-bottom: 6px; }
+    .name-block { min-height:40px; margin-bottom:6px; }
 
     .row {
-      display: flex;
-      justify-content: center;
-      align-items: center;
-      height: 24px;
-      margin: 6px 0;
+      display:flex;
+      justify-content:center;
+      align-items:center;
+      height:24px;
+      margin:6px 0;
     }
 
-    .marker { width: 30px; display:flex; justify-content:center; }
+    .marker { width:30px; display:flex; justify-content:center; }
 
     .circle {
-      width: 16px;
-      height: 16px;
-      border-radius: 50%;
-      background: #ccc;
-      display:flex;
-      align-items:center;
-      justify-content:center;
-      font-size:10px;
+      width:16px;height:16px;border-radius:50%;
+      background:#ccc;font-size:10px;
+      display:flex;align-items:center;justify-content:center;
     }
 
-    .line { width:110px; height:12px; margin:0 6px; cursor:pointer; }
+    .line { width:110px;height:12px;margin:0 6px;cursor:pointer; }
 
     .yang { background:black; }
 
     .yin {
       background: linear-gradient(to right, black 40%, white 40%, white 60%, black 60%);
     }
+
+    .trigram { font-size:40px; font-weight:bold; }
 
     .tag {
       display:inline-block;
@@ -65,28 +58,23 @@
       cursor:pointer;
     }
 
-    .tag.active {
-      background:#333;
-      color:white;
-    }
+    .tag.active { background:#333;color:white; }
 
     .notes { font-size:12px; margin-top:6px; }
 
     .info-section {
       margin-top:30px;
-      border-top:1px solid #ccc;
-      padding-top:15px;
       width:800px;
       margin-left:auto;
       margin-right:auto;
       text-align:left;
     }
 
-    .formula-row {
-      display: flex;
-      padding: 6px;
-      cursor: pointer;
-    }
+    .collapsible { cursor:pointer; font-weight:bold; }
+
+    .hidden { display:none; }
+
+    .formula-row { display:flex; padding:6px; cursor:pointer; }
 
     .formula-name { width:50%; }
 
@@ -95,20 +83,21 @@
     #filter-bar { margin-bottom:10px; }
 
     .popup {
-      position: fixed;
-      top: 50%;
-      left: 50%;
-      transform: translate(-50%,-50%);
-      background: white;
-      border: 1px solid #ccc;
-      padding: 20px;
-      width: 400px;
-      max-height: 500px;
+      position:fixed;
+      top:50%;
+      left:50%;
+      transform:translate(-50%,-50%);
+      background:white;
+      padding:20px;
+      width:400px;
+      max-height:500px;
       overflow:auto;
-      z-index: 999;
+      border:1px solid #ccc;
+      z-index:999;
+      text-align:left;
     }
 
-    .hidden { display:none; }
+    .popup.hidden { display:none; }
 
   </style>
 </head>
@@ -122,36 +111,64 @@
 
 <div class="container">
 
+  <!-- ORIGINAL -->
   <div class="hex-block">
     <div class="title">Original</div>
-    <div id="orig-top"></div>
-    <div id="orig-eng"></div>
+    <div class="name-block">
+      <div id="orig-top"></div>
+      <div id="orig-eng"></div>
+    </div>
     <div id="original"></div>
     <div id="orig-tags"></div>
     <div id="orig-notes" class="notes"></div>
+    <input type="radio" name="hex" checked onclick="selectHex('orig')">
   </div>
 
+  <!-- TRIGRAMS -->
+  <div>
+    <div id="top-trigram" class="trigram"></div>
+    <div id="top-tags"></div>
+
+    <div style="height:40px;"></div>
+
+    <div id="bottom-trigram" class="trigram"></div>
+    <div id="bottom-tags"></div>
+  </div>
+
+  <!-- NUCLEAR -->
   <div class="hex-block">
     <div class="title">Nuclear</div>
-    <div id="nuc-top"></div>
-    <div id="nuc-eng"></div>
+    <div class="name-block">
+      <div id="nuc-top"></div>
+      <div id="nuc-eng"></div>
+    </div>
     <div id="nuclear"></div>
     <div id="nuc-tags"></div>
     <div id="nuc-notes" class="notes"></div>
+    <input type="radio" name="hex" onclick="selectHex('nuc')">
   </div>
 
+  <!-- OUTCOME -->
   <div class="hex-block">
     <div class="title">Outcome</div>
-    <div id="out-top"></div>
-    <div id="out-eng"></div>
+    <div class="name-block">
+      <div id="out-top"></div>
+      <div id="out-eng"></div>
+    </div>
     <div id="outcome"></div>
     <div id="out-tags"></div>
     <div id="out-notes" class="notes"></div>
+    <input type="radio" name="hex" onclick="selectHex('out')">
   </div>
 
 </div>
 
 <div class="info-section">
+
+  <div class="collapsible" onclick="toggleInfo()">Hexagram Info ▼</div>
+  <div id="info-content">
+    <div id="info"></div>
+  </div>
 
   <h3>Formulas</h3>
 
@@ -192,8 +209,12 @@ async function loadHex(){
     pinyin:r.c[2].v,
     english:r.c[5]?.v||"",
     chinese:r.c[6]?.v||"",
+    top:r.c[8]?.v||"",
+    bottom:r.c[9]?.v||"",
     topM:r.c[10]?.v||"",
-    notes:r.c[17]?.v||""
+    bottomM:r.c[11]?.v||"",
+    notes:r.c[17]?.v||"",
+    info:[r.c[18]?.v,r.c[19]?.v,r.c[20]?.v]
   }));
 
   update();
@@ -214,19 +235,16 @@ async function loadFormulas(){
     name:r.c[0]?.v||"",
     category:r.c[3]?.v||"",
     meridians:r.c[4]?.v||""
-  }));
+  })).filter(f=>f.name);
 
   renderFormulas();
 }
 
 function buildFilter(){
   let all=[];
-
   ["orig","nuc","out"].forEach(type=>{
     const h=currentHex[type];
-    if(h && h.topM){
-      all=all.concat(h.topM.split(","));
-    }
+    if(h && h.topM) all=all.concat(h.topM.split(","));
   });
 
   activeFilter=[...new Set(all.map(m=>m.trim()))];
@@ -241,13 +259,11 @@ function buildFilter(){
 
     tag.onclick=()=>{
       tag.classList.toggle("active");
-
       if(activeFilter.includes(m)){
         activeFilter=activeFilter.filter(x=>x!==m);
       } else {
         activeFilter.push(m);
       }
-
       renderFormulas();
     };
 
@@ -255,10 +271,7 @@ function buildFilter(){
   });
 }
 
-function resetFilter(){
-  buildFilter();
-  renderFormulas();
-}
+function resetFilter(){ buildFilter(); renderFormulas(); }
 
 function renderFormulas(){
   const c=document.getElementById("formula-list");
@@ -298,7 +311,7 @@ function renderFormulas(){
 function showPopup(f){
   const popup=document.getElementById("popup");
   popup.innerHTML="";
-  popup.style.textAlign="left";
+  popup.classList.remove("hidden");
 
   f.raw.slice(0,17).forEach((cell,i)=>{
     if(cell && cell.v){
@@ -313,29 +326,125 @@ function showPopup(f){
   close.onclick=()=>popup.classList.add("hidden");
 
   popup.appendChild(close);
-  popup.classList.remove("hidden");
 }
 
+function findHex(a){return hexData.find(h=>h.binary===getBinary(a));}
+function getNuclear(a){return [a[1],a[2],a[3],a[2],a[3],a[4]];}
+function getOutcome(a){return a.map((v,i)=>moving[i]?(v?0:1):v);}
+
 function update(){
-  currentHex={
-    orig:hexData[Math.floor(Math.random()*hexData.length)],
-    nuc:hexData[Math.floor(Math.random()*hexData.length)],
-    out:hexData[Math.floor(Math.random()*hexData.length)]
-  };
+  const orig=findHex(lines);
+  const nuc=findHex(getNuclear(lines));
+  const out=findHex(getOutcome(lines));
+  currentHex={orig,nuc,out};
 
-  ["orig","nuc","out"].forEach(type=>{
-    const h=currentHex[type];
-    document.getElementById(type+"-top").innerText=`${h.number} ${h.chinese} ${h.pinyin}`;
-    document.getElementById(type+"-eng").innerText=h.english;
-    document.getElementById(type+"-tags").innerHTML=h.topM;
-    document.getElementById(type+"-notes").innerText=h.notes;
-  });
+  if(orig){
+    document.getElementById("orig-top").innerText=`${orig.number} ${orig.chinese} ${orig.pinyin}`;
+    document.getElementById("orig-eng").innerText=orig.english;
+    renderTags("orig-tags",orig.topM);
+    document.getElementById("top-trigram").innerText=orig.top;
+    document.getElementById("bottom-trigram").innerText=orig.bottom;
+    renderTags("top-tags",orig.topM);
+    renderTags("bottom-tags",orig.bottomM);
+    document.getElementById("orig-notes").innerText=orig.notes;
+  }
 
+  if(nuc){
+    document.getElementById("nuc-top").innerText=`${nuc.number} ${nuc.chinese} ${nuc.pinyin}`;
+    document.getElementById("nuc-eng").innerText=nuc.english;
+    renderTags("nuc-tags",nuc.topM);
+    document.getElementById("nuc-notes").innerText=nuc.notes;
+  }
+
+  if(out){
+    document.getElementById("out-top").innerText=`${out.number} ${out.chinese} ${out.pinyin}`;
+    document.getElementById("out-eng").innerText=out.english;
+    renderTags("out-tags",out.topM);
+    document.getElementById("out-notes").innerText=out.notes;
+  }
+
+  drawHex("original",lines,true);
+  drawHex("nuclear",getNuclear(lines));
+  drawHex("outcome",getOutcome(lines));
+
+  selectHex("orig");
   buildFilter();
 }
 
-function resetAll(){ update(); }
-function randomHexagram(){ update(); }
+function renderTags(id,text){
+  const c=document.getElementById(id);
+  c.innerHTML="";
+  if(!text) return;
+  text.split(",").forEach(t=>{
+    let tag=document.createElement("span");
+    tag.className="tag";
+    tag.innerText=t.trim();
+    c.appendChild(tag);
+  });
+}
+
+function drawHex(id,arr,interactive=false){
+  const c=document.getElementById(id);
+  c.innerHTML="";
+  for(let i=5;i>=0;i--){
+    let row=document.createElement("div");
+    row.className="row";
+
+    let left=document.createElement("div");
+    left.className="marker";
+
+    if(interactive){
+      let circle=document.createElement("div");
+      circle.className="circle";
+      if(moving[i]) circle.innerText=arr[i]?"O":"X";
+      left.appendChild(circle);
+      left.onclick=()=>{moving[i]=!moving[i];update();};
+    }
+
+    let line=document.createElement("div");
+    line.className="line "+(arr[i]?"yang":"yin");
+
+    if(interactive){
+      line.onclick=()=>{lines[i]=lines[i]?0:1;update();};
+    }
+
+    let right=document.createElement("div");
+    right.className="marker";
+
+    row.append(left,line,right);
+    c.appendChild(row);
+  }
+}
+
+function selectHex(type){
+  const hex=currentHex[type];
+  if(!hex) return;
+  const info=document.getElementById("info");
+  info.innerHTML="";
+  hex.info.forEach(i=>{
+    if(i){
+      let div=document.createElement("div");
+      div.innerText=i;
+      info.appendChild(div);
+    }
+  });
+}
+
+function toggleInfo(){
+  document.getElementById("info-content").classList.toggle("hidden");
+}
+
+function randomHexagram(){
+  lines=Array.from({length:6},()=>Math.random()>0.5?1:0);
+  moving=Array.from({length:6},()=>Math.random()>0.5);
+  update();
+}
+
+function resetAll(){
+  lines=[1,1,1,1,1,1];
+  moving=[false,false,false,false,false,false];
+  update();
+}
 
 loadHex();
 loadFormulas();
