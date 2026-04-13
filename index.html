@@ -77,13 +77,43 @@ body { font-family: Arial; text-align:center; }
 
 .section { max-width:1000px; margin:20px auto; text-align:left; }
 
-.category-header { font-weight:bold; cursor:pointer; }
+.category-header {
+  font-weight:bold;
+  cursor:pointer;
+  background:#f0f0f0;
+  padding:6px;
+  margin-top:6px;
+}
 
 .hidden { display:none; }
 
-.formula-row { display:flex; padding:6px; cursor:pointer; }
+.formula-row {
+  display:flex;
+  padding:6px;
+  cursor:pointer;
+  border-bottom:1px solid #eee;
+}
+
 .formula-name { width:50%; }
 .formula-tags { width:50%; display:flex; flex-wrap:wrap; }
+
+/* POPUP */
+.popup {
+  position:fixed;
+  top:50%;
+  left:50%;
+  transform:translate(-50%,-50%);
+  background:white;
+  padding:20px;
+  width:400px;
+  max-height:500px;
+  overflow:auto;
+  border:1px solid #ccc;
+  text-align:left;
+  z-index:1000;
+}
+
+.popup.hidden { display:none; }
 
 </style>
 </head>
@@ -109,9 +139,7 @@ body { font-family: Arial; text-align:center; }
 <div class="trigram-box">
   <div id="top-trigram" class="trigram"></div>
   <div id="top-tags"></div>
-
   <div style="height:30px;"></div>
-
   <div id="bottom-trigram" class="trigram"></div>
   <div id="bottom-tags"></div>
 </div>
@@ -144,10 +172,12 @@ body { font-family: Arial; text-align:center; }
 <div class="section">
 <h3>Meridian Filter</h3>
 <div id="meridian-filter"></div>
+<button onclick="resetMeridians()">Reset Meridians</button>
 
 <h3>Symptom Filters</h3>
 <div id="symptom-buttons"></div>
 <div id="symptom-panels"></div>
+<button onclick="resetSymptoms()">Reset Symptoms</button>
 </div>
 
 <div class="section">
@@ -155,241 +185,50 @@ body { font-family: Arial; text-align:center; }
 <div id="formula-list"></div>
 </div>
 
+<div id="popup" class="popup hidden"></div>
+
 <script>
 
-let lines=[1,1,1,1,1,1];
-let moving=[false,false,false,false,false,false];
-let currentHex="orig";
+let formulaHeaders=[];
 
-let hexData=[];
-let formulaData=[];
+/* ===== RESET FUNCTIONS ===== */
 
-const HEX_SHEET="1eYJ26LpAL3XV9l95-6r4nEvR3m_ksITatkMH4eKxlN4";
-const FORMULA_SHEET="1aHGUMyg-524vwzfcEcs8JPFePnbj5Ss06QI7o7T8UqU";
-
-const MERIDIANS=["LU","LI","ST","SP","HT","SI","UB","KD","PC","TW","GB","LV"];
-let activeMeridians=[...MERIDIANS];
-let symptomFilters={};
-
-function getBinary(arr){ return arr.join(""); }
-function getOutcome(){ return lines.map((v,i)=> moving[i] ? (v?0:1) : v); }
-function getNuclear(){ return [lines[1],lines[2],lines[3],lines[2],lines[3],lines[4]]; }
-function findHex(binary){ return hexData.find(h=>h.binary===binary); }
-
-function drawOriginal(hex){
-const c=document.getElementById("original");
-c.innerHTML="";
-
-for(let i=5;i>=0;i--){
-let row=document.createElement("div");
-row.className="row";
-
-let left=document.createElement("div");
-left.className="marker";
-
-let circle=document.createElement("div");
-circle.className="circle";
-if(moving[i]) circle.innerText=lines[i]?"O":"X";
-
-circle.onclick=()=>{ moving[i]=!moving[i]; update(); };
-
-left.appendChild(circle);
-
-let line=document.createElement("div");
-line.className="line "+(lines[i]?"yang":"yin");
-line.onclick=()=>{ lines[i]=lines[i]?0:1; update(); };
-
-let right=document.createElement("div");
-right.className="marker";
-
-if(hex){
-if(i+1===hex.subject) right.innerText="S";
-if(i+1===hex.object) right.innerText="O";
-}
-
-row.append(left,line,right);
-c.appendChild(row);
-}
-}
-
-function drawStatic(id,arr){
-const c=document.getElementById(id);
-c.innerHTML="";
-for(let i=5;i>=0;i--){
-let row=document.createElement("div");
-row.className="row";
-let line=document.createElement("div");
-line.className="line "+(arr[i]?"yang":"yin");
-row.appendChild(line);
-c.appendChild(row);
-}
-}
-
-function renderTags(id,str){
-const c=document.getElementById(id);
-c.innerHTML="";
-if(!str) return;
-str.split(",").forEach(t=>{
-let tag=document.createElement("span");
-tag.className="tag";
-tag.innerText=t.trim();
-c.appendChild(tag);
-});
-}
-
-function update(){
-
-const orig=findHex(getBinary(lines));
-const nuc=findHex(getBinary(getNuclear()));
-const out=findHex(getBinary(getOutcome()));
-
-drawOriginal(orig);
-drawStatic("nuclear",getNuclear());
-drawStatic("outcome",getOutcome());
-
-renderHex("orig",orig);
-renderHex("nuc",nuc);
-renderHex("out",out);
-
-if(orig){
-document.getElementById("top-trigram").innerText=orig.top;
-document.getElementById("bottom-trigram").innerText=orig.bottom;
-renderTags("top-tags",orig.topEH);
-renderTags("bottom-tags",orig.bottomEH);
-}
-
-/* AUTO FILTER */
-let combined=[];
-[orig,nuc,out].forEach(h=>{
-if(h && h.meridians){
-combined=combined.concat(h.meridians.split(",").map(x=>x.trim()));
-}
-});
-activeMeridians=[...new Set(combined)];
-buildMeridianFilter();
-
-renderInfo();
-renderFormulas();
-}
-
-function renderHex(prefix,hex){
-if(!hex) return;
-
-document.getElementById(prefix+"-title").innerText=
-`${hex.number} ${hex.chinese} ${hex.name}\n${hex.english}`;
-
-renderTags(prefix+"-tags",hex.meridians);
-document.getElementById(prefix+"-notes").innerText=hex.notes;
-}
-
-function renderInfo(){
-const hex=currentHex==="orig"
-? findHex(getBinary(lines))
-: currentHex==="nuc"
-? findHex(getBinary(getNuclear()))
-: findHex(getBinary(getOutcome()));
-
-if(!hex) return;
-
-document.getElementById("hex-info").innerText=
-`${hex.infoS}\n${hex.infoT}\n${hex.infoU}\n${hex.infoV}\n${hex.infoW}`;
-}
-
-function selectHex(type){ currentHex=type; renderInfo(); }
-function toggleInfo(){ document.getElementById("hex-info").classList.toggle("hidden"); }
-
-function buildMeridianFilter(){
-const c=document.getElementById("meridian-filter");
-c.innerHTML="";
-MERIDIANS.forEach(m=>{
-let tag=document.createElement("span");
-tag.className="tag "+(activeMeridians.includes(m)?"active":"");
-tag.innerText=m;
-
-tag.onclick=()=>{
-if(activeMeridians.includes(m)){
-activeMeridians=activeMeridians.filter(x=>x!==m);
-}else{
-activeMeridians.push(m);
-}
+function resetMeridians(){
+activeMeridians=[...MERIDIANS];
 buildMeridianFilter();
 renderFormulas();
-};
-c.appendChild(tag);
-});
 }
 
-function parseSymptoms(val){
-if(!val) return [];
-return val.split(",").map(x=>x.trim());
-}
-
-function buildSymptomFilters(){
-
-const names=["Line 1","Line 2","Line 3","Line 4","Line 5","Line 6","General"];
-const cols=[17,18,19,20,21,22,23];
-
-const btnC=document.getElementById("symptom-buttons");
-const panelC=document.getElementById("symptom-panels");
-
-btnC.innerHTML="";
-panelC.innerHTML="";
-
-names.forEach((name,i)=>{
-
-symptomFilters[name]=[];
-
-let btn=document.createElement("button");
-btn.innerText=name;
-
-let panel=document.createElement("div");
-panel.className="filter-panel";
-
-btn.onclick=(e)=>{
-e.stopPropagation();
-panel.style.display = panel.style.display==="block" ? "none" : "block";
-};
-
-let set=new Set();
-
-formulaData.forEach(f=>{
-parseSymptoms(f.raw[cols[i]]?.v).forEach(s=>set.add(s));
-});
-
-[...set].sort().forEach(s=>{
-
-let label=document.createElement("label");
-
-let cb=document.createElement("input");
-cb.type="checkbox";
-
-cb.onchange=()=>{
-if(cb.checked){
-symptomFilters[name].push(s);
-}else{
-symptomFilters[name]=symptomFilters[name].filter(x=>x!==s);
-}
+function resetSymptoms(){
+Object.keys(symptomFilters).forEach(k=>symptomFilters[k]=[]);
+buildSymptomFilters();
 renderFormulas();
-};
-
-label.append(cb," "+s);
-panel.appendChild(label);
-panel.appendChild(document.createElement("br"));
-});
-
-btnC.appendChild(btn);
-panelC.appendChild(panel);
-});
-
-/* CLOSE ON OUTSIDE CLICK */
-document.addEventListener("click",()=>{
-document.querySelectorAll(".filter-panel").forEach(p=>p.style.display="none");
-});
-
-document.querySelectorAll(".filter-panel").forEach(p=>{
-p.addEventListener("click",(e)=>e.stopPropagation());
-});
 }
+
+/* ===== POPUP ===== */
+
+function showPopup(f){
+
+const popup=document.getElementById("popup");
+popup.innerHTML="";
+popup.classList.remove("hidden");
+
+f.raw.slice(0,17).forEach((cell,i)=>{
+if(cell && cell.v){
+let row=document.createElement("div");
+row.innerHTML=`<b>${formulaHeaders[i]}:</b> ${cell.v}`;
+popup.appendChild(row);
+}
+});
+
+let close=document.createElement("button");
+close.innerText="Close";
+close.onclick=()=>popup.classList.add("hidden");
+
+popup.appendChild(close);
+}
+
+/* ===== FORMULAS (UPDATED) ===== */
 
 function renderFormulas(){
 
@@ -427,6 +266,7 @@ header.className="category-header";
 header.innerText=`${cat} (${grouped[cat].length})`;
 
 let content=document.createElement("div");
+
 header.onclick=()=>content.classList.toggle("hidden");
 
 grouped[cat].forEach(f=>{
@@ -449,6 +289,10 @@ tags.appendChild(tag);
 });
 
 row.append(name,tags);
+
+/* 🔥 POPUP CLICK */
+row.onclick=()=>showPopup(f);
+
 content.appendChild(row);
 });
 
@@ -457,48 +301,15 @@ c.appendChild(content);
 });
 }
 
-function resetAll(){
-lines=[1,1,1,1,1,1];
-moving=[false,false,false,false,false,false];
-update();
-}
-
-function randomHexagram(){
-lines=Array.from({length:6},()=>Math.random()>0.5?1:0);
-moving=Array.from({length:6},()=>Math.random()>0.5);
-update();
-}
+/* ===== LOAD FIX ===== */
 
 async function loadAll(){
 
-let res=await fetch(`https://docs.google.com/spreadsheets/d/${HEX_SHEET}/gviz/tq?tqx=out:json`);
+let res=await fetch(`https://docs.google.com/spreadsheets/d/${FORMULA_SHEET}/gviz/tq?tqx=out:json&gid=282292594`);
 let text=await res.text();
 let json=JSON.parse(text.substring(47).slice(0,-2));
 
-hexData=json.table.rows.map(r=>({
-number:r.c[0]?.v,
-binary:String(r.c[1]?.v).padStart(6,"0"),
-name:r.c[2]?.v,
-subject:r.c[3]?.v,
-object:r.c[4]?.v,
-english:r.c[5]?.v,
-chinese:r.c[6]?.v,
-meridians:r.c[7]?.v,
-top:r.c[8]?.v,
-bottom:r.c[9]?.v,
-topEH:r.c[10]?.v,
-bottomEH:r.c[11]?.v,
-notes:r.c[17]?.v,
-infoS:r.c[18]?.v,
-infoT:r.c[19]?.v,
-infoU:r.c[20]?.v,
-infoV:r.c[21]?.v,
-infoW:r.c[22]?.v
-}));
-
-res=await fetch(`https://docs.google.com/spreadsheets/d/${FORMULA_SHEET}/gviz/tq?tqx=out:json&gid=282292594`);
-text=await res.text();
-json=JSON.parse(text.substring(47).slice(0,-2));
+formulaHeaders=json.table.rows[0].c.map(c=>c?.v||"");
 
 formulaData=json.table.rows.slice(1).map(r=>({
 raw:r.c,
@@ -511,9 +322,4 @@ buildSymptomFilters();
 update();
 }
 
-loadAll();
-
 </script>
-
-</body>
-</html>
