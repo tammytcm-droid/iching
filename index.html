@@ -6,24 +6,41 @@
 <style>
 body { font-family: Arial; text-align:center; }
 
-button { margin:10px; padding:6px 12px; cursor:pointer; }
+button { margin:6px; padding:6px 10px; cursor:pointer; }
 
 .container {
   display:flex;
   justify-content:center;
   gap:30px;
   margin-top:20px;
+  align-items:flex-start;
 }
 
-/* HEXAGRAM */
-.row { display:flex; justify-content:center; margin:6px 0; }
-.line { width:110px; height:12px; margin:0 6px; }
+.hex-block { width:220px; }
+
+.row {
+  display:flex;
+  justify-content:center;
+  align-items:center;
+  margin:6px 0;
+}
+
+.marker { width:25px; text-align:center; }
+
+.circle {
+  width:16px;height:16px;border-radius:50%;
+  background:#ccc;font-size:10px;
+  display:flex;align-items:center;justify-content:center;
+  cursor:pointer;
+}
+
+.line { width:110px;height:12px;margin:0 6px;cursor:pointer; }
+
 .yang { background:black; }
 .yin {
   background: linear-gradient(to right, black 40%, white 40%, white 60%, black 60%);
 }
 
-/* TAGS */
 .tag {
   display:inline-block;
   background:#eee;
@@ -33,34 +50,27 @@ button { margin:10px; padding:6px 12px; cursor:pointer; }
   font-size:11px;
   cursor:pointer;
 }
-.tag.active { background:#333;color:white; }
 
-/* FILTER BUTTONS */
-.filter-btn {
-  padding:6px 10px;
-  margin:5px;
-  border:1px solid #ccc;
-  cursor:pointer;
-}
+.tag.active { background:#333;color:white; }
 
 .filter-panel {
   display:none;
   border:1px solid #ccc;
   padding:10px;
-  width:250px;
+  width:220px;
   max-height:200px;
   overflow:auto;
   margin:5px auto;
   text-align:left;
-  background:#fafafa;
 }
 
-/* FORMULAS */
 .category-header {
   font-weight:bold;
   cursor:pointer;
   margin-top:10px;
 }
+
+.hidden { display:none; }
 
 .formula-row {
   display:flex;
@@ -71,7 +81,6 @@ button { margin:10px; padding:6px 12px; cursor:pointer; }
 .formula-name { width:50%; }
 .formula-tags { width:50%; display:flex; flex-wrap:wrap; }
 
-/* POPUP */
 .popup {
   position:fixed;
   top:50%;
@@ -85,7 +94,6 @@ button { margin:10px; padding:6px 12px; cursor:pointer; }
   border:1px solid #ccc;
   text-align:left;
 }
-.hidden { display:none; }
 
 </style>
 </head>
@@ -94,31 +102,51 @@ button { margin:10px; padding:6px 12px; cursor:pointer; }
 
 <h2>I Ching TCM</h2>
 
-<!-- HEXAGRAM -->
+<button onclick="resetAll()">Reset</button>
+<button onclick="randomHexagram()">Random</button>
+
 <div class="container">
-  <div>
-    <h3>Original</h3>
-    <div id="original"></div>
-  </div>
-  <div>
-    <h3>Nuclear</h3>
-    <div id="nuclear"></div>
-  </div>
-  <div>
-    <h3>Outcome</h3>
-    <div id="outcome"></div>
-  </div>
+
+<div class="hex-block">
+<h3>Original</h3>
+<div id="orig-title"></div>
+<div id="original"></div>
+<div id="orig-tags"></div>
+<div id="orig-notes"></div>
+<input type="radio" name="hex" checked onclick="selectHex('orig')">
 </div>
 
-<!-- FILTERS -->
+<div>
+<div id="top-trigram"></div>
+<div id="bottom-trigram"></div>
+</div>
+
+<div class="hex-block">
+<h3>Nuclear</h3>
+<div id="nuc-title"></div>
+<div id="nuclear"></div>
+<div id="nuc-tags"></div>
+<div id="nuc-notes"></div>
+<input type="radio" name="hex" onclick="selectHex('nuc')">
+</div>
+
+<div class="hex-block">
+<h3>Outcome</h3>
+<div id="out-title"></div>
+<div id="outcome"></div>
+<div id="out-tags"></div>
+<div id="out-notes"></div>
+<input type="radio" name="hex" onclick="selectHex('out')">
+</div>
+
+</div>
+
 <h3>Filters</h3>
-
 <div id="filter-bar"></div>
+<div id="filter-buttons"></div>
+<div id="filter-panels"></div>
 
-<div id="line-buttons"></div>
-<div id="line-panels"></div>
-
-<button onclick="resetFilter()">Reset</button>
+<button onclick="resetFilter()">Reset Filter</button>
 
 <h3>Formulas</h3>
 <div id="formula-list"></div>
@@ -129,6 +157,9 @@ button { margin:10px; padding:6px 12px; cursor:pointer; }
 
 const MERIDIANS=["LU","LI","ST","SP","HT","SI","UB","KD","PC","TW","GB","LV"];
 
+let lines=[1,1,1,1,1,1];
+let moving=[false,false,false,false,false,false];
+
 let activeMeridians=[...MERIDIANS];
 let lineFilters={};
 
@@ -137,57 +168,56 @@ let formulaHeaders=[];
 
 const FORMULA_SHEET="1aHGUMyg-524vwzfcEcs8JPFePnbj5Ss06QI7o7T8UqU";
 
-/* HEXAGRAM BASIC (visual only placeholder so nothing breaks) */
-function drawHex(id){
+/* HEXAGRAM DRAW */
+
+function drawHex(id,arr){
 const c=document.getElementById(id);
 c.innerHTML="";
-for(let i=0;i<6;i++){
+
+for(let i=5;i>=0;i--){
 let row=document.createElement("div");
 row.className="row";
+
+let left=document.createElement("div");
+left.className="marker";
+
+let circle=document.createElement("div");
+circle.className="circle";
+
+if(moving[i]) circle.innerText=arr[i]?"O":"X";
+
+circle.onclick=()=>{
+moving[i]=!moving[i];
+update();
+};
+
+left.appendChild(circle);
+
 let line=document.createElement("div");
-line.className="line yang";
-row.appendChild(line);
+line.className="line "+(arr[i]?"yang":"yin");
+
+line.onclick=()=>{
+lines[i]=lines[i]?0:1;
+update();
+};
+
+let right=document.createElement("div");
+right.className="marker";
+
+row.append(left,line,right);
 c.appendChild(row);
 }
 }
-drawHex("original");
-drawHex("nuclear");
-drawHex("outcome");
 
-/* MERIDIAN FILTER */
-function buildMeridianFilter(){
-const bar=document.getElementById("filter-bar");
-bar.innerHTML="";
+/* FILTER BUTTONS */
 
-MERIDIANS.forEach(m=>{
-let tag=document.createElement("span");
-tag.className="tag active";
-tag.innerText=m;
-
-tag.onclick=()=>{
-tag.classList.toggle("active");
-
-if(activeMeridians.includes(m)){
-activeMeridians=activeMeridians.filter(x=>x!==m);
-}else{
-activeMeridians.push(m);
-}
-
-renderFormulas();
-};
-
-bar.appendChild(tag);
-});
-}
-
-/* 🔥 BUTTON + PANEL FILTERS */
-function buildLineFilters(){
+function buildFilters(){
 
 const names=["Line 1","Line 2","Line 3","Line 4","Line 5","Line 6","General"];
 const cols=[17,18,19,20,21,22,23];
 
-const btnContainer=document.getElementById("line-buttons");
-const panelContainer=document.getElementById("line-panels");
+const btnContainer=document.getElementById("filter-buttons");
+const panelContainer=document.getElementById("filter-panels");
 
 btnContainer.innerHTML="";
 panelContainer.innerHTML="";
@@ -196,32 +226,29 @@ names.forEach((name,i)=>{
 
 lineFilters[name]=[];
 
-// BUTTON
 let btn=document.createElement("button");
-btn.className="filter-btn";
 btn.innerText=name;
 
 let panel=document.createElement("div");
 panel.className="filter-panel";
 
 btn.onclick=()=>{
-panel.style.display = panel.style.display==="block" ? "none" : "block";
+panel.style.display=panel.style.display==="block"?"none":"block";
 };
 
-// VALUES
 let values=new Set();
+
 formulaData.forEach(f=>{
 let v=f.raw[cols[i]]?.v;
 if(v) values.add(v);
 });
 
-// CHECKBOXES
-values.forEach(v=>{
+[...values].sort().forEach(v=>{
+
 let label=document.createElement("label");
 
 let cb=document.createElement("input");
 cb.type="checkbox";
-cb.value=v;
 
 cb.onchange=()=>{
 if(cb.checked){
@@ -229,14 +256,17 @@ lineFilters[name].push(v);
 }else{
 lineFilters[name]=lineFilters[name].filter(x=>x!==v);
 }
+
+// 🔥 AUTO CLOSE AFTER CLICK
+panel.style.display="none";
+
 renderFormulas();
 };
 
-label.appendChild(cb);
-label.append(" "+v);
-
+label.append(cb," "+v);
 panel.appendChild(label);
 panel.appendChild(document.createElement("br"));
+
 });
 
 btnContainer.appendChild(btn);
@@ -246,6 +276,7 @@ panelContainer.appendChild(panel);
 }
 
 /* FORMULAS */
+
 function renderFormulas(){
 
 const container=document.getElementById("formula-list");
@@ -255,13 +286,11 @@ const grouped={};
 
 formulaData.forEach(f=>{
 
-// MERIDIANS
 const mMatch=f.meridians.split(",")
 .some(m=>activeMeridians.includes(m.trim()));
 
 if(!mMatch) return;
 
-// LINE FILTERS
 const names=["Line 1","Line 2","Line 3","Line 4","Line 5","Line 6","General"];
 const cols=[17,18,19,20,21,22,23];
 
@@ -273,13 +302,11 @@ if(!selected.includes(val)) return;
 }
 }
 
-// GROUP
 if(!grouped[f.category]) grouped[f.category]=[];
 grouped[f.category].push(f);
 
 });
 
-// RENDER
 Object.keys(grouped).forEach(cat=>{
 
 let list=grouped[cat];
@@ -293,7 +320,6 @@ let content=document.createElement("div");
 header.onclick=()=>content.classList.toggle("hidden");
 
 list.forEach(f=>{
-
 let row=document.createElement("div");
 row.className="formula-row";
 
@@ -324,6 +350,7 @@ container.appendChild(content);
 }
 
 /* POPUP */
+
 function showPopup(f){
 const popup=document.getElementById("popup");
 popup.innerHTML="";
@@ -345,14 +372,29 @@ popup.appendChild(close);
 }
 
 /* RESET */
+
 function resetFilter(){
 activeMeridians=[...MERIDIANS];
-buildMeridianFilter();
-buildLineFilters();
+buildFilters();
 renderFormulas();
 }
 
+function resetAll(){
+lines=[1,1,1,1,1,1];
+moving=[false,false,false,false,false,false];
+update();
+}
+
+/* RANDOM */
+
+function randomHexagram(){
+lines=Array.from({length:6},()=>Math.random()>0.5?1:0);
+moving=Array.from({length:6},()=>Math.random()>0.5);
+update();
+}
+
 /* LOAD */
+
 async function loadFormulas(){
 
 const url=`https://docs.google.com/spreadsheets/d/${FORMULA_SHEET}/gviz/tq?tqx=out:json&gid=282292594`;
@@ -371,9 +413,15 @@ category:r.c[3]?.v||"",
 meridians:r.c[4]?.v||""
 }));
 
-buildMeridianFilter();
-buildLineFilters();
+buildFilters();
 renderFormulas();
+update();
+}
+
+function update(){
+drawHex("original",lines);
+drawHex("nuclear",lines);
+drawHex("outcome",lines);
 }
 
 loadFormulas();
