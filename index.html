@@ -259,11 +259,21 @@ Sources - mainly Formulas and Strategies (2nd Ed) (Bensky, at al, 2009), America
 </div>
 
 <div class="section">
-<h3>Formulas</h3>
-<div id="formula-list"></div>
-</div>
+<h3>
+Formulas (<span id="formula-count">0</span>)
+</h3>
+
+<input type="text" id="search-bar" placeholder="Search formula..."
+oninput="renderFormulas()" style="width:300px;padding:6px;margin-bottom:10px;">
+
+<div id="formula-list" style="max-height:400px; overflow-y:auto;"></div>
 
 <div id="popup" class="popup hidden"></div>
+
+<div class="section">
+<h3>Abbreviations</h3>
+<div id="abbrev-table"></div>
+</div>
 
 <script>
 
@@ -520,13 +530,24 @@ document.querySelectorAll(".dropdown-content").forEach(p=>p.style.display="none"
 
 /* FORMULAS */
 function renderFormulas(){
-let c=document.getElementById("formula-list"); c.innerHTML="";
+
+let c=document.getElementById("formula-list");
+c.innerHTML="";
+
+let search=document.getElementById("search-bar").value.toLowerCase();
+
 let grouped={};
+let totalCount=0;
 
 formulaData.forEach(f=>{
 
+/* SEARCH */
+if(search && !f.name.toLowerCase().includes(search)) return;
+
+/* MERIDIAN FILTER */
 if(!f.meridians.split(",").some(m=>activeMeridians.includes(m.trim()))) return;
 
+/* SYMPTOM FILTER */
 for(let i=0;i<7;i++){
 let selected=symptomFilters[symptomNames[i]];
 if(selected?.length){
@@ -535,12 +556,42 @@ if(!selected.some(s=>val.includes(s))) return;
 }
 }
 
+/* 🔥 RANKING SCORE */
+let score=0;
+
+/* Meridian match score */
+f.meridians.split(",").forEach(m=>{
+if(activeMeridians.includes(m.trim())) score+=2;
+});
+
+/* Symptom match score */
+for(let i=0;i<7;i++){
+let selected=symptomFilters[symptomNames[i]];
+if(selected?.length){
+let val=f.raw[symptomCols[i]]?.v||"";
+selected.forEach(s=>{
+if(val.includes(s)) score+=3;
+});
+}
+}
+
+f.score=score;
+
+/* GROUP */
 if(!grouped[f.category]) grouped[f.category]=[];
 grouped[f.category].push(f);
 
+totalCount++;
 });
 
+/* 🔥 UPDATE COUNT */
+document.getElementById("formula-count").innerText=totalCount;
+
+/* RENDER */
 Object.keys(grouped).forEach(cat=>{
+
+/* SORT BY SCORE */
+grouped[cat].sort((a,b)=>b.score-a.score);
 
 let head=document.createElement("div");
 head.className="category-header";
@@ -552,13 +603,16 @@ box.classList.add("hidden");
 head.onclick=()=>box.classList.toggle("hidden");
 
 grouped[cat].forEach(f=>{
+
 let row=document.createElement("div");
 row.className="formula-row";
 
+/* NAME */
 let name=document.createElement("div");
 name.className="formula-name";
-name.innerText=f.name;
+name.innerText=`${f.name} ${f.score>0 ? "("+f.score+")":""}`;
 
+/* TAGS */
 let tags=document.createElement("div");
 tags.className="formula-tags";
 tags.innerText=f.meridians;
@@ -645,8 +699,46 @@ moving=Array.from({length:6},()=>Math.random()>0.5);
 update();
 }
 
+loadAbbreviations();
+  
 loadAll();
 
+async function loadAbbreviations(){
+
+let r=await fetch(`https://docs.google.com/spreadsheets/d/1wno0UdDX_jOYT58L0x60ngOg8SyTomynw2X2ZOe3v34/gviz/tq?tqx=out:json&gid=403913474`);
+let t=await r.text();
+let j=JSON.parse(t.substring(47).slice(0,-2));
+
+let rows=j.table.rows;
+
+let table=document.createElement("table");
+table.border="1";
+table.style.width="100%";
+table.style.borderCollapse="collapse";
+
+/* HEADER */
+let headerRow=document.createElement("tr");
+rows[0].c.forEach(c=>{
+let th=document.createElement("th");
+th.innerText=c?.v||"";
+headerRow.appendChild(th);
+});
+table.appendChild(headerRow);
+
+/* DATA */
+rows.slice(1).forEach(r=>{
+let tr=document.createElement("tr");
+r.c.forEach(c=>{
+let td=document.createElement("td");
+td.innerText=c?.v||"";
+tr.appendChild(td);
+});
+table.appendChild(tr);
+});
+
+document.getElementById("abbrev-table").appendChild(table);
+}
+  
 </script>
 
 </body>
