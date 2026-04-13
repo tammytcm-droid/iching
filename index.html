@@ -1,105 +1,79 @@
 <!DOCTYPE html>
 <html>
 <head>
-  <title>I Ching TCM</title>
+<title>I Ching TCM</title>
 
-  <style>
-    body { font-family: Arial; text-align: center; }
+<style>
+body { font-family: Arial; text-align:center; }
 
-    button { margin:10px; padding:6px 12px; cursor:pointer; }
+.container {
+  display:flex;
+  justify-content:center;
+  gap:30px;
+  margin-top:20px;
+}
 
-    .container {
-      display:flex;
-      justify-content:center;
-      gap:30px;
-      margin-top:20px;
-      align-items:flex-start;
-    }
+.hex-block { width:200px; }
 
-    .hex-block { width:200px; }
+.row {
+  display:flex;
+  justify-content:center;
+  margin:6px 0;
+}
 
-    .title { font-weight:bold; margin-bottom:6px; }
+.line { width:110px; height:12px; margin:0 6px; cursor:pointer; }
+.yang { background:black; }
+.yin { background: linear-gradient(to right, black 40%, white 40%, white 60%, black 60%); }
 
-    .name-block { min-height:40px; margin-bottom:6px; }
+.circle {
+  width:16px;height:16px;border-radius:50%;
+  background:#ccc;font-size:10px;
+  display:flex;align-items:center;justify-content:center;
+  cursor:pointer;
+}
 
-    .row {
-      display:flex;
-      justify-content:center;
-      align-items:center;
-      height:24px;
-      margin:6px 0;
-    }
+.tag {
+  display:inline-block;
+  background:#eee;
+  padding:4px 10px;
+  margin:2px;
+  border-radius:12px;
+  font-size:11px;
+  cursor:pointer;
+}
 
-    .marker { width:30px; display:flex; justify-content:center; }
+.tag.active { background:#333;color:white; }
 
-    .circle {
-      width:16px;height:16px;border-radius:50%;
-      background:#ccc;font-size:10px;
-      display:flex;align-items:center;justify-content:center;
-    }
+.formula-row {
+  display:flex;
+  padding:6px;
+  cursor:pointer;
+}
 
-    .line { width:110px;height:12px;margin:0 6px;cursor:pointer; }
+.formula-name { width:50%; }
+.formula-tags { width:50%; display:flex; flex-wrap:wrap; }
 
-    .yang { background:black; }
+.category-header {
+  font-weight:bold;
+  cursor:pointer;
+  margin-top:10px;
+}
 
-    .yin {
-      background: linear-gradient(to right, black 40%, white 40%, white 60%, black 60%);
-    }
+.hidden { display:none; }
 
-    .trigram { font-size:40px; font-weight:bold; }
-
-    .tag {
-      display:inline-block;
-      background:#eee;
-      padding:4px 10px;
-      margin:2px;
-      border-radius:12px;
-      font-size:11px;
-      cursor:pointer;
-    }
-
-    .tag.active { background:#333;color:white; }
-
-    .notes { font-size:12px; margin-top:6px; }
-
-    .info-section {
-      margin-top:30px;
-      width:800px;
-      margin-left:auto;
-      margin-right:auto;
-      text-align:left;
-    }
-
-    .collapsible { cursor:pointer; font-weight:bold; }
-
-    .hidden { display:none; }
-
-    .formula-row { display:flex; padding:6px; cursor:pointer; }
-
-    .formula-name { width:50%; }
-
-    .formula-tags { width:50%; display:flex; flex-wrap:wrap; }
-
-    #filter-bar { margin-bottom:10px; }
-
-    .popup {
-      position:fixed;
-      top:50%;
-      left:50%;
-      transform:translate(-50%,-50%);
-      background:white;
-      padding:20px;
-      width:400px;
-      max-height:500px;
-      overflow:auto;
-      border:1px solid #ccc;
-      z-index:999;
-      text-align:left;
-    }
-
-    .popup.hidden { display:none; }
-
-  </style>
+.popup {
+  position:fixed;
+  top:50%;
+  left:50%;
+  transform:translate(-50%,-50%);
+  background:white;
+  padding:20px;
+  width:400px;
+  max-height:500px;
+  overflow:auto;
+  border:1px solid #ccc;
+}
+</style>
 </head>
 
 <body>
@@ -110,160 +84,67 @@
 <button onclick="randomHexagram()">Random</button>
 
 <div class="container">
-
-  <!-- ORIGINAL -->
   <div class="hex-block">
-    <div class="title">Original</div>
-    <div class="name-block">
-      <div id="orig-top"></div>
-      <div id="orig-eng"></div>
-    </div>
+    <h3>Original</h3>
     <div id="original"></div>
     <div id="orig-tags"></div>
-    <div id="orig-notes" class="notes"></div>
-    <input type="radio" name="hex" checked onclick="selectHex('orig')">
   </div>
 
-  <!-- TRIGRAMS -->
-  <div>
-    <div id="top-trigram" class="trigram"></div>
-    <div id="top-tags"></div>
-
-    <div style="height:40px;"></div>
-
-    <div id="bottom-trigram" class="trigram"></div>
-    <div id="bottom-tags"></div>
-  </div>
-
-  <!-- NUCLEAR -->
   <div class="hex-block">
-    <div class="title">Nuclear</div>
-    <div class="name-block">
-      <div id="nuc-top"></div>
-      <div id="nuc-eng"></div>
-    </div>
+    <h3>Nuclear</h3>
     <div id="nuclear"></div>
     <div id="nuc-tags"></div>
-    <div id="nuc-notes" class="notes"></div>
-    <input type="radio" name="hex" onclick="selectHex('nuc')">
   </div>
 
-  <!-- OUTCOME -->
   <div class="hex-block">
-    <div class="title">Outcome</div>
-    <div class="name-block">
-      <div id="out-top"></div>
-      <div id="out-eng"></div>
-    </div>
+    <h3>Outcome</h3>
     <div id="outcome"></div>
     <div id="out-tags"></div>
-    <div id="out-notes" class="notes"></div>
-    <input type="radio" name="hex" onclick="selectHex('out')">
   </div>
-
 </div>
 
-<div class="info-section">
+<h3>Formulas</h3>
 
-  <div class="collapsible" onclick="toggleInfo()">Hexagram Info ▼</div>
-  <div id="info-content">
-    <div id="info"></div>
-  </div>
+<div id="filter-bar"></div>
+<button onclick="resetFilter()">Reset Filter</button>
 
-  <h3>Formulas</h3>
-
-  <div id="filter-bar"></div>
-  <button onclick="resetFilter()">Reset Filter</button>
-
-  <div id="formula-list"></div>
-
-</div>
+<div id="formula-list"></div>
 
 <div id="popup" class="popup hidden"></div>
 
 <script>
 
-let lines=[1,1,1,1,1,1];
-let moving=[false,false,false,false,false,false];
+const ALL_MERIDIANS = ["LU","LI","ST","SP","HT","SI","UB","KD","PC","TW","GB","LV"];
 
-const HEX_SHEET="1eYJ26LpAL3XV9l95-6r4nEvR3m_ksITatkMH4eKxlN4";
+let activeFilter = [];
+let formulaData = [];
+let formulaHeaders = [];
+let currentHex = {};
+
 const FORMULA_SHEET="1aHGUMyg-524vwzfcEcs8JPFePnbj5Ss06QI7o7T8UqU";
 
-let hexData=[];
-let formulaData=[];
-let formulaHeaders=[];
-let activeFilter=[];
-let currentHex={};
-
-function getBinary(a){ return a.join(""); }
-
-async function loadHex(){
-  const url=`https://docs.google.com/spreadsheets/d/${HEX_SHEET}/gviz/tq?tqx=out:json`;
-  const res=await fetch(url);
-  const text=await res.text();
-  const json=JSON.parse(text.substr(47).slice(0,-2));
-
-  hexData=json.table.rows.map(r=>({
-    number:r.c[0].v,
-    binary:String(r.c[1].v).padStart(6,"0"),
-    pinyin:r.c[2].v,
-    english:r.c[5]?.v||"",
-    chinese:r.c[6]?.v||"",
-    top:r.c[8]?.v||"",
-    bottom:r.c[9]?.v||"",
-    topM:r.c[10]?.v||"",
-    bottomM:r.c[11]?.v||"",
-    notes:r.c[17]?.v||"",
-    info:[r.c[18]?.v,r.c[19]?.v,r.c[20]?.v]
-  }));
-
-  update();
-}
-
-async function loadFormulas(){
-  const url=`https://docs.google.com/spreadsheets/d/${FORMULA_SHEET}/gviz/tq?tqx=out:json&gid=282292594`;
-  const res=await fetch(url);
-  const text=await res.text();
-  const json=JSON.parse(text.substring(47).slice(0,-2));
-
-  const rows=json.table.rows;
-
-  formulaHeaders=rows[0].c.map(c=>c?.v||"");
-
-  formulaData=rows.slice(1).map(r=>({
-    raw:r.c,
-    name:r.c[0]?.v||"",
-    category:r.c[3]?.v||"",
-    meridians:r.c[4]?.v||""
-  })).filter(f=>f.name);
-
-  renderFormulas();
-}
-
 function buildFilter(){
-  let all=[];
-  ["orig","nuc","out"].forEach(type=>{
-    const h=currentHex[type];
-    if(h && h.topM) all=all.concat(h.topM.split(","));
-  });
-
-  activeFilter=[...new Set(all.map(m=>m.trim()))];
 
   const bar=document.getElementById("filter-bar");
   bar.innerHTML="";
 
-  activeFilter.forEach(m=>{
+  ALL_MERIDIANS.forEach(m=>{
+
     let tag=document.createElement("span");
-    tag.className="tag active";
+    tag.className="tag";
     tag.innerText=m;
+
+    if(activeFilter.includes(m)) tag.classList.add("active");
 
     tag.onclick=()=>{
       tag.classList.toggle("active");
+
       if(activeFilter.includes(m)){
         activeFilter=activeFilter.filter(x=>x!==m);
       } else {
         activeFilter.push(m);
       }
+
       renderFormulas();
     };
 
@@ -271,44 +152,104 @@ function buildFilter(){
   });
 }
 
-function resetFilter(){ buildFilter(); renderFormulas(); }
+function resetFilter(){
+  // reset to hexagram meridians
+  activeFilter = [];
+
+  ["orig","nuc","out"].forEach(type=>{
+    const h=currentHex[type];
+    if(h && h.topM){
+      activeFilter = activeFilter.concat(h.topM.split(",").map(x=>x.trim()));
+    }
+  });
+
+  activeFilter = [...new Set(activeFilter)];
+
+  buildFilter();
+  renderFormulas();
+}
+
+async function loadFormulas(){
+
+  const url=`https://docs.google.com/spreadsheets/d/${FORMULA_SHEET}/gviz/tq?tqx=out:json&gid=282292594`;
+  const res=await fetch(url);
+  const text=await res.text();
+  const json=JSON.parse(text.substring(47).slice(0,-2));
+
+  const rows=json.table.rows;
+
+  formulaHeaders = rows[0].c.map(c=>c?.v||"");
+
+  formulaData = rows.slice(1).map(r=>({
+    raw:r.c,
+    name:r.c[0]?.v||"",
+    category:r.c[3]?.v||"Other",
+    meridians:r.c[4]?.v||""
+  })).filter(f=>f.name);
+
+  renderFormulas();
+}
 
 function renderFormulas(){
-  const c=document.getElementById("formula-list");
-  c.innerHTML="";
+
+  const container=document.getElementById("formula-list");
+  container.innerHTML="";
+
+  const grouped={};
 
   formulaData.forEach(f=>{
 
-    const match=f.meridians.split(",")
+    const match = f.meridians.split(",")
       .some(m=>activeFilter.includes(m.trim()));
 
     if(activeFilter.length && !match) return;
 
-    const row=document.createElement("div");
-    row.className="formula-row";
+    if(!grouped[f.category]) grouped[f.category]=[];
+    grouped[f.category].push(f);
+  });
 
-    const name=document.createElement("div");
-    name.className="formula-name";
-    name.innerText=f.name;
+  Object.keys(grouped).forEach(cat=>{
 
-    const tags=document.createElement("div");
-    tags.className="formula-tags";
+    let header=document.createElement("div");
+    header.className="category-header";
+    header.innerText=cat;
 
-    f.meridians.split(",").forEach(m=>{
-      let tag=document.createElement("span");
-      tag.className="tag";
-      tag.innerText=m.trim();
-      tags.appendChild(tag);
+    let list=document.createElement("div");
+
+    header.onclick=()=>list.classList.toggle("hidden");
+
+    grouped[cat].forEach(f=>{
+
+      let row=document.createElement("div");
+      row.className="formula-row";
+
+      let name=document.createElement("div");
+      name.className="formula-name";
+      name.innerText=f.name;
+
+      let tags=document.createElement("div");
+      tags.className="formula-tags";
+
+      f.meridians.split(",").forEach(m=>{
+        let tag=document.createElement("span");
+        tag.className="tag";
+        tag.innerText=m.trim();
+        tags.appendChild(tag);
+      });
+
+      row.append(name,tags);
+      row.onclick=()=>showPopup(f);
+
+      list.appendChild(row);
     });
 
-    row.append(name,tags);
-    row.onclick=()=>showPopup(f);
-
-    c.appendChild(row);
+    container.appendChild(header);
+    container.appendChild(list);
   });
 }
 
 function showPopup(f){
+
   const popup=document.getElementById("popup");
   popup.innerHTML="";
   popup.classList.remove("hidden");
@@ -328,126 +269,19 @@ function showPopup(f){
   popup.appendChild(close);
 }
 
-function findHex(a){return hexData.find(h=>h.binary===getBinary(a));}
-function getNuclear(a){return [a[1],a[2],a[3],a[2],a[3],a[4]];}
-function getOutcome(a){return a.map((v,i)=>moving[i]?(v?0:1):v);}
-
-function update(){
-  const orig=findHex(lines);
-  const nuc=findHex(getNuclear(lines));
-  const out=findHex(getOutcome(lines));
-  currentHex={orig,nuc,out};
-
-  if(orig){
-    document.getElementById("orig-top").innerText=`${orig.number} ${orig.chinese} ${orig.pinyin}`;
-    document.getElementById("orig-eng").innerText=orig.english;
-    renderTags("orig-tags",orig.topM);
-    document.getElementById("top-trigram").innerText=orig.top;
-    document.getElementById("bottom-trigram").innerText=orig.bottom;
-    renderTags("top-tags",orig.topM);
-    renderTags("bottom-tags",orig.bottomM);
-    document.getElementById("orig-notes").innerText=orig.notes;
-  }
-
-  if(nuc){
-    document.getElementById("nuc-top").innerText=`${nuc.number} ${nuc.chinese} ${nuc.pinyin}`;
-    document.getElementById("nuc-eng").innerText=nuc.english;
-    renderTags("nuc-tags",nuc.topM);
-    document.getElementById("nuc-notes").innerText=nuc.notes;
-  }
-
-  if(out){
-    document.getElementById("out-top").innerText=`${out.number} ${out.chinese} ${out.pinyin}`;
-    document.getElementById("out-eng").innerText=out.english;
-    renderTags("out-tags",out.topM);
-    document.getElementById("out-notes").innerText=out.notes;
-  }
-
-  drawHex("original",lines,true);
-  drawHex("nuclear",getNuclear(lines));
-  drawHex("outcome",getOutcome(lines));
-
-  selectHex("orig");
-  buildFilter();
-}
-
-function renderTags(id,text){
-  const c=document.getElementById(id);
-  c.innerHTML="";
-  if(!text) return;
-  text.split(",").forEach(t=>{
-    let tag=document.createElement("span");
-    tag.className="tag";
-    tag.innerText=t.trim();
-    c.appendChild(tag);
-  });
-}
-
-function drawHex(id,arr,interactive=false){
-  const c=document.getElementById(id);
-  c.innerHTML="";
-  for(let i=5;i>=0;i--){
-    let row=document.createElement("div");
-    row.className="row";
-
-    let left=document.createElement("div");
-    left.className="marker";
-
-    if(interactive){
-      let circle=document.createElement("div");
-      circle.className="circle";
-      if(moving[i]) circle.innerText=arr[i]?"O":"X";
-      left.appendChild(circle);
-      left.onclick=()=>{moving[i]=!moving[i];update();};
-    }
-
-    let line=document.createElement("div");
-    line.className="line "+(arr[i]?"yang":"yin");
-
-    if(interactive){
-      line.onclick=()=>{lines[i]=lines[i]?0:1;update();};
-    }
-
-    let right=document.createElement("div");
-    right.className="marker";
-
-    row.append(left,line,right);
-    c.appendChild(row);
-  }
-}
-
-function selectHex(type){
-  const hex=currentHex[type];
-  if(!hex) return;
-  const info=document.getElementById("info");
-  info.innerHTML="";
-  hex.info.forEach(i=>{
-    if(i){
-      let div=document.createElement("div");
-      div.innerText=i;
-      info.appendChild(div);
-    }
-  });
-}
-
-function toggleInfo(){
-  document.getElementById("info-content").classList.toggle("hidden");
-}
-
-function randomHexagram(){
-  lines=Array.from({length:6},()=>Math.random()>0.5?1:0);
-  moving=Array.from({length:6},()=>Math.random()>0.5);
-  update();
-}
-
 function resetAll(){
-  lines=[1,1,1,1,1,1];
-  moving=[false,false,false,false,false,false];
-  update();
+  currentHex = {
+    orig:{topM:"LU,SP"},
+    nuc:{topM:"HT"},
+    out:{topM:"ST"}
+  };
+  resetFilter();
 }
 
-loadHex();
+function randomHexagram(){ resetAll(); }
+
 loadFormulas();
+resetAll();
 
 </script>
 
