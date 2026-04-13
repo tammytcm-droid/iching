@@ -147,17 +147,23 @@
 
 <div class="container">
 
+  <!-- ORIGINAL -->
   <div class="hex-block">
     <div class="title">Original</div>
+
     <div class="name-block">
       <div id="orig-top"></div>
       <div id="orig-eng"></div>
     </div>
+
     <div id="original"></div>
+    <div id="orig-tags"></div>   <!-- ✅ restored -->
     <div id="orig-notes" class="notes"></div>
+
     <input type="radio" name="hex" checked onclick="selectHex('orig')">
   </div>
 
+  <!-- TRIGRAMS -->
   <div class="trigram-block">
     <div id="top-trigram" class="trigram"></div>
     <div id="top-tags"></div>
@@ -168,25 +174,35 @@
     <div id="bottom-tags"></div>
   </div>
 
+  <!-- NUCLEAR -->
   <div class="hex-block">
     <div class="title">Nuclear</div>
+
     <div class="name-block">
       <div id="nuc-top"></div>
       <div id="nuc-eng"></div>
     </div>
+
     <div id="nuclear"></div>
+    <div id="nuc-tags"></div>   <!-- ✅ restored -->
     <div id="nuc-notes" class="notes"></div>
+
     <input type="radio" name="hex" onclick="selectHex('nuc')">
   </div>
 
+  <!-- OUTCOME -->
   <div class="hex-block">
     <div class="title">Outcome</div>
+
     <div class="name-block">
       <div id="out-top"></div>
       <div id="out-eng"></div>
     </div>
+
     <div id="outcome"></div>
+    <div id="out-tags"></div>   <!-- ✅ restored -->
     <div id="out-notes" class="notes"></div>
+
     <input type="radio" name="hex" onclick="selectHex('out')">
   </div>
 
@@ -238,7 +254,6 @@ async function loadHex(){
     top:r.c[8]?.v||"",
     bottom:r.c[9]?.v||"",
     topM:r.c[10]?.v||"",
-    bottomM:r.c[11]?.v||"",
     notes:r.c[17]?.v||"",
     info:[r.c[18]?.v,r.c[19]?.v,r.c[20]?.v]
   }));
@@ -320,7 +335,7 @@ function showPopup(f){
   popup.innerHTML="";
   popup.style.textAlign="left";
 
-  f.raw.forEach((cell,i)=>{
+  f.raw.slice(0,17).forEach((cell,i)=>{
     if(cell && cell.v){
       let row=document.createElement("div");
       row.style.marginBottom="6px";
@@ -341,7 +356,7 @@ function showPopup(f){
   popup.classList.remove("hidden");
 }
 
-/* REMAINING CODE UNCHANGED */
+/* KEEP REST SAME */
 
 function findHex(a){return hexData.find(h=>h.binary===getBinary(a));}
 function getNuclear(a){return [a[1],a[2],a[3],a[2],a[3],a[4]];}
@@ -356,22 +371,22 @@ function update(){
   if(orig){
     document.getElementById("orig-top").innerText=`${orig.number} ${orig.chinese} ${orig.pinyin}`;
     document.getElementById("orig-eng").innerText=orig.english;
-    document.getElementById("top-trigram").innerText=orig.top;
-    document.getElementById("bottom-trigram").innerText=orig.bottom;
-    renderTags("top-tags",orig.topM);
-    renderTags("bottom-tags",orig.bottomM);
+    document.getElementById("orig-tags").innerHTML="";
+    renderTags("orig-tags",orig.topM);
     document.getElementById("orig-notes").innerText=orig.notes;
   }
 
   if(nuc){
     document.getElementById("nuc-top").innerText=`${nuc.number} ${nuc.chinese} ${nuc.pinyin}`;
     document.getElementById("nuc-eng").innerText=nuc.english;
+    renderTags("nuc-tags",nuc.topM);
     document.getElementById("nuc-notes").innerText=nuc.notes;
   }
 
   if(out){
     document.getElementById("out-top").innerText=`${out.number} ${out.chinese} ${out.pinyin}`;
     document.getElementById("out-eng").innerText=out.english;
+    renderTags("out-tags",out.topM);
     document.getElementById("out-notes").innerText=out.notes;
   }
 
@@ -393,6 +408,8 @@ function renderTags(id,text){
     c.appendChild(tag);
   });
 }
+
+/* rest unchanged */
 
 function drawHex(id,arr,interactive=false){
   const c=document.getElementById(id);
