@@ -50,6 +50,20 @@ body { font-family: Arial; text-align:center; }
 }
 .tag.active { background:#333;color:white; }
 
+.trigram-box {
+  display:flex;
+  flex-direction:column;
+  justify-content:center;
+  align-items:center;
+  height:320px;
+}
+
+.trigram {
+  font-size:22px;
+  font-weight:bold;
+  margin:10px 0;
+}
+
 .filter-panel {
   display:none;
   border:1px solid #ccc;
@@ -92,13 +106,14 @@ body { font-family: Arial; text-align:center; }
 <input type="radio" name="hex" checked onclick="selectHex('orig')">
 </div>
 
-<!-- 🔥 TRIGRAMS -->
-<div>
-<div id="top-trigram"></div>
-<div id="top-tags"></div>
-<div style="height:40px;"></div>
-<div id="bottom-trigram"></div>
-<div id="bottom-tags"></div>
+<div class="trigram-box">
+  <div id="top-trigram" class="trigram"></div>
+  <div id="top-tags"></div>
+
+  <div style="height:30px;"></div>
+
+  <div id="bottom-trigram" class="trigram"></div>
+  <div id="bottom-tags"></div>
 </div>
 
 <div class="hex-block">
@@ -121,13 +136,11 @@ body { font-family: Arial; text-align:center; }
 
 </div>
 
-<!-- INFO -->
 <div class="section">
 <h3 onclick="toggleInfo()" style="cursor:pointer;">Hexagram Information ▼</h3>
 <div id="hex-info"></div>
 </div>
 
-<!-- FILTERS -->
 <div class="section">
 <h3>Meridian Filter</h3>
 <div id="meridian-filter"></div>
@@ -137,7 +150,6 @@ body { font-family: Arial; text-align:center; }
 <div id="symptom-panels"></div>
 </div>
 
-<!-- FORMULAS -->
 <div class="section">
 <h3>Formulas</h3>
 <div id="formula-list"></div>
@@ -145,11 +157,8 @@ body { font-family: Arial; text-align:center; }
 
 <script>
 
-/* ================= STATE ================= */
-
 let lines=[1,1,1,1,1,1];
 let moving=[false,false,false,false,false,false];
-
 let currentHex="orig";
 
 let hexData=[];
@@ -162,23 +171,10 @@ const MERIDIANS=["LU","LI","ST","SP","HT","SI","UB","KD","PC","TW","GB","LV"];
 let activeMeridians=[...MERIDIANS];
 let symptomFilters={};
 
-/* ================= HEXAGRAM ================= */
-
 function getBinary(arr){ return arr.join(""); }
-
-function getOutcome(){
-return lines.map((v,i)=> moving[i] ? (v?0:1) : v);
-}
-
-function getNuclear(){
-return [lines[1],lines[2],lines[3],lines[2],lines[3],lines[4]];
-}
-
-function findHex(binary){
-return hexData.find(h=>h.binary===binary);
-}
-
-/* ================= DRAW ================= */
+function getOutcome(){ return lines.map((v,i)=> moving[i] ? (v?0:1) : v); }
+function getNuclear(){ return [lines[1],lines[2],lines[3],lines[2],lines[3],lines[4]]; }
+function findHex(binary){ return hexData.find(h=>h.binary===binary); }
 
 function drawOriginal(hex){
 const c=document.getElementById("original");
@@ -193,7 +189,6 @@ left.className="marker";
 
 let circle=document.createElement("div");
 circle.className="circle";
-
 if(moving[i]) circle.innerText=lines[i]?"O":"X";
 
 circle.onclick=()=>{ moving[i]=!moving[i]; update(); };
@@ -202,7 +197,6 @@ left.appendChild(circle);
 
 let line=document.createElement("div");
 line.className="line "+(lines[i]?"yang":"yin");
-
 line.onclick=()=>{ lines[i]=lines[i]?0:1; update(); };
 
 let right=document.createElement("div");
@@ -231,13 +225,10 @@ c.appendChild(row);
 }
 }
 
-/* ================= TAGS ================= */
-
 function renderTags(id,str){
 const c=document.getElementById(id);
 c.innerHTML="";
 if(!str) return;
-
 str.split(",").forEach(t=>{
 let tag=document.createElement("span");
 tag.className="tag";
@@ -245,8 +236,6 @@ tag.innerText=t.trim();
 c.appendChild(tag);
 });
 }
-
-/* ================= UPDATE ================= */
 
 function update(){
 
@@ -262,20 +251,26 @@ renderHex("orig",orig);
 renderHex("nuc",nuc);
 renderHex("out",out);
 
-/* 🔥 TRIGRAMS */
 if(orig){
 document.getElementById("top-trigram").innerText=orig.top;
 document.getElementById("bottom-trigram").innerText=orig.bottom;
-
 renderTags("top-tags",orig.topEH);
 renderTags("bottom-tags",orig.bottomEH);
 }
 
+/* AUTO FILTER */
+let combined=[];
+[orig,nuc,out].forEach(h=>{
+if(h && h.meridians){
+combined=combined.concat(h.meridians.split(",").map(x=>x.trim()));
+}
+});
+activeMeridians=[...new Set(combined)];
+buildMeridianFilter();
+
 renderInfo();
 renderFormulas();
 }
-
-/* ================= RENDER ================= */
 
 function renderHex(prefix,hex){
 if(!hex) return;
@@ -300,27 +295,26 @@ document.getElementById("hex-info").innerText=
 `${hex.infoS}\n${hex.infoT}\n${hex.infoU}\n${hex.infoV}\n${hex.infoW}`;
 }
 
-/* ================= FILTERS ================= */
+function selectHex(type){ currentHex=type; renderInfo(); }
+function toggleInfo(){ document.getElementById("hex-info").classList.toggle("hidden"); }
 
 function buildMeridianFilter(){
 const c=document.getElementById("meridian-filter");
 c.innerHTML="";
-
 MERIDIANS.forEach(m=>{
 let tag=document.createElement("span");
-tag.className="tag active";
+tag.className="tag "+(activeMeridians.includes(m)?"active":"");
 tag.innerText=m;
 
 tag.onclick=()=>{
-tag.classList.toggle("active");
 if(activeMeridians.includes(m)){
 activeMeridians=activeMeridians.filter(x=>x!==m);
 }else{
 activeMeridians.push(m);
 }
+buildMeridianFilter();
 renderFormulas();
 };
-
 c.appendChild(tag);
 });
 }
@@ -351,7 +345,10 @@ btn.innerText=name;
 let panel=document.createElement("div");
 panel.className="filter-panel";
 
-btn.onclick=()=> panel.style.display=panel.style.display==="block"?"none":"block";
+btn.onclick=(e)=>{
+e.stopPropagation();
+panel.style.display = panel.style.display==="block" ? "none" : "block";
+};
 
 let set=new Set();
 
@@ -372,23 +369,27 @@ symptomFilters[name].push(s);
 }else{
 symptomFilters[name]=symptomFilters[name].filter(x=>x!==s);
 }
-panel.style.display="none";
 renderFormulas();
 };
 
 label.append(cb," "+s);
 panel.appendChild(label);
 panel.appendChild(document.createElement("br"));
-
 });
 
 btnC.appendChild(btn);
 panelC.appendChild(panel);
+});
 
+/* CLOSE ON OUTSIDE CLICK */
+document.addEventListener("click",()=>{
+document.querySelectorAll(".filter-panel").forEach(p=>p.style.display="none");
+});
+
+document.querySelectorAll(".filter-panel").forEach(p=>{
+p.addEventListener("click",(e)=>e.stopPropagation());
 });
 }
-
-/* ================= FORMULAS ================= */
 
 function renderFormulas(){
 
@@ -401,7 +402,6 @@ formulaData.forEach(f=>{
 
 const mMatch=f.meridians.split(",")
 .some(m=>activeMeridians.includes(m.trim()));
-
 if(!mMatch) return;
 
 const names=["Line 1","Line 2","Line 3","Line 4","Line 5","Line 6","General"];
@@ -427,7 +427,6 @@ header.className="category-header";
 header.innerText=`${cat} (${grouped[cat].length})`;
 
 let content=document.createElement("div");
-
 header.onclick=()=>content.classList.toggle("hidden");
 
 grouped[cat].forEach(f=>{
@@ -455,19 +454,7 @@ content.appendChild(row);
 
 c.appendChild(header);
 c.appendChild(content);
-
 });
-}
-
-/* ================= UI ================= */
-
-function selectHex(type){
-currentHex=type;
-renderInfo();
-}
-
-function toggleInfo(){
-document.getElementById("hex-info").classList.toggle("hidden");
 }
 
 function resetAll(){
@@ -482,11 +469,8 @@ moving=Array.from({length:6},()=>Math.random()>0.5);
 update();
 }
 
-/* ================= LOAD ================= */
-
 async function loadAll(){
 
-/* HEXAGRAMS */
 let res=await fetch(`https://docs.google.com/spreadsheets/d/${HEX_SHEET}/gviz/tq?tqx=out:json`);
 let text=await res.text();
 let json=JSON.parse(text.substring(47).slice(0,-2));
@@ -512,7 +496,6 @@ infoV:r.c[21]?.v,
 infoW:r.c[22]?.v
 }));
 
-/* FORMULAS */
 res=await fetch(`https://docs.google.com/spreadsheets/d/${FORMULA_SHEET}/gviz/tq?tqx=out:json&gid=282292594`);
 text=await res.text();
 json=JSON.parse(text.substring(47).slice(0,-2));
@@ -524,7 +507,6 @@ category:r.c[3]?.v||"",
 meridians:r.c[4]?.v||""
 }));
 
-buildMeridianFilter();
 buildSymptomFilters();
 update();
 }
