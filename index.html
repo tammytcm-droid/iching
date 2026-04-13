@@ -48,7 +48,12 @@ justify-content:center;
 margin:10px 0;
 }
 
-.marker { width:25px; text-align:center; }
+.marker {
+  width:25px;
+  display:flex;
+  justify-content:center;
+  align-items:center;
+}
 
 .circle {
 width:16px;height:16px;border-radius:50%;
@@ -58,10 +63,8 @@ cursor:pointer;
 }
 
 .line {
-width:120px;
-height:14px;
-margin:0 6px;
-cursor:pointer;
+  width:120px;
+  height:14px;
 }
 
 /* 🔥 FIXED YIN/YANG */
@@ -293,38 +296,69 @@ function findHex(bin){ return hexData.find(h=>h.binary===bin); }
 
 /* DRAW */
 function drawOriginal(hex){
-let c=document.getElementById("original"); c.innerHTML="";
-for(let i=5;i>=0;i--){
-let row=document.createElement("div"); row.className="row";
+let c=document.getElementById("original");
+c.innerHTML="";
 
+for(let i=5;i>=0;i--){
+
+let row=document.createElement("div");
+row.className="row";
+
+/* LEFT MARKER (fixed width) */
 let left=document.createElement("div");
+left.className="marker";
+
 let circle=document.createElement("div");
 circle.className="circle";
-if(moving[i]) circle.innerText=lines[i]?"O":"X";
-circle.onclick=()=>{moving[i]=!moving[i];update();};
+
+if(moving[i]) circle.innerText=lines[i] ? "O" : "X";
+
+circle.onclick=()=>{
+moving[i]=!moving[i];
+update();
+};
+
 left.appendChild(circle);
 
+/* LINE */
 let line=document.createElement("div");
-line.className="line "+(lines[i]?"yang":"yin");
-line.onclick=()=>{lines[i]=lines[i]?0:1;update();};
+line.className="line "+(lines[i] ? "yang":"yin");
 
+line.onclick=()=>{
+lines[i]=lines[i]?0:1;
+update();
+};
+
+/* RIGHT MARKER (fixed width) */
 let right=document.createElement("div");
+right.className="marker";
+
 if(hex){
 if(i+1===hex.subject) right.innerText="S";
 if(i+1===hex.object) right.innerText="O";
 }
 
-row.append(left,line,right);
+/* 🔥 FORCE PERFECT ALIGNMENT */
+row.appendChild(left);
+row.appendChild(line);
+row.appendChild(right);
+
 c.appendChild(row);
 }
 }
 
 function drawStatic(id,a){
-let c=document.getElementById(id); c.innerHTML="";
+let c=document.getElementById(id);
+c.innerHTML="";
+
 for(let i=5;i>=0;i--){
+
 let row=document.createElement("div");
+row.className="row";  // 🔥 THIS WAS MISSING
+
 let line=document.createElement("div");
-line.className="line "+(a[i]?"yang":"yin");
+line.className="line "+(a[i] ? "yang":"yin");
+
 row.appendChild(line);
 c.appendChild(row);
 }
