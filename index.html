@@ -559,10 +559,25 @@ if(!selected.some(s=>val.includes(s))) return;
 /* 🔥 RANKING SCORE */
 let score=0;
 
-/* Meridian match score */
-f.meridians.split(",").forEach(m=>{
-if(activeMeridians.includes(m.trim())) score+=2;
-});
+/* 🔥 MERIDIAN DENSITY (replaces flat scoring) */
+
+let formulaMeridians = f.meridians
+  ? f.meridians.split(",").map(m=>m.trim()).filter(Boolean)
+  : [];
+
+let matched = formulaMeridians.filter(m =>
+  activeMeridians.includes(m)
+).length;
+
+let density = formulaMeridians.length
+  ? matched / formulaMeridians.length
+  : 0;
+
+/* scale density to similar weight */
+score += density * 10;
+
+/* (optional: store for debugging/display) */
+f.mDensity = density;
 
 /* Symptom match score */
 for(let i=0;i<7;i++){
