@@ -45,15 +45,31 @@ body { font-family: Arial; text-align:center; }
   margin:2px;
   border-radius:12px;
   font-size:11px;
+  cursor:pointer;
 }
 
-.section {
-  max-width:1000px;
-  margin:20px auto;
+.tag.active { background:#333;color:white; }
+
+.filter-panel {
+  display:none;
+  border:1px solid #ccc;
+  padding:8px;
+  max-height:200px;
+  overflow:auto;
   text-align:left;
+  width:200px;
+  margin:auto;
 }
+
+.section { max-width:1000px; margin:20px auto; text-align:left; }
+
+.category-header { font-weight:bold; cursor:pointer; }
 
 .hidden { display:none; }
+
+.formula-row { display:flex; padding:6px; cursor:pointer; }
+.formula-name { width:50%; }
+.formula-tags { width:50%; display:flex; flex-wrap:wrap; }
 
 </style>
 </head>
@@ -69,23 +85,37 @@ body { font-family: Arial; text-align:center; }
 
 <div class="hex-block">
 <h3>Original</h3>
+<div id="orig-title"></div>
 <div id="original"></div>
 <div id="orig-tags"></div>
 <div id="orig-notes"></div>
+<input type="radio" name="hex" checked onclick="selectHex('orig')">
+</div>
+
+<div>
+<div id="top-trigram"></div>
+<div id="top-tags"></div>
+<div style="height:40px;"></div>
+<div id="bottom-trigram"></div>
+<div id="bottom-tags"></div>
 </div>
 
 <div class="hex-block">
 <h3>Nuclear</h3>
+<div id="nuc-title"></div>
 <div id="nuclear"></div>
 <div id="nuc-tags"></div>
 <div id="nuc-notes"></div>
+<input type="radio" name="hex" onclick="selectHex('nuc')">
 </div>
 
 <div class="hex-block">
 <h3>Outcome</h3>
+<div id="out-title"></div>
 <div id="outcome"></div>
 <div id="out-tags"></div>
 <div id="out-notes"></div>
+<input type="radio" name="hex" onclick="selectHex('out')">
 </div>
 
 </div>
@@ -96,12 +126,17 @@ body { font-family: Arial; text-align:center; }
 <div id="hex-info"></div>
 </div>
 
-<!-- FILTER -->
+<!-- 🔍 FILTERS -->
 <div class="section">
-<h3>Meridians</h3>
+<h3>Meridian Filter</h3>
 <div id="meridian-filter"></div>
+
+<h3>Symptom Filters</h3>
+<div id="symptom-buttons"></div>
+<div id="symptom-panels"></div>
 </div>
 
+<!-- 📊 FORMULAS -->
 <div class="section">
 <h3>Formulas</h3>
 <div id="formula-list"></div>
@@ -114,25 +149,38 @@ body { font-family: Arial; text-align:center; }
 let lines=[1,1,1,1,1,1];
 let moving=[false,false,false,false,false,false];
 
-let subjectLine=3;
-let objectLine=6;
+let currentHex="orig";
 
-/* ================= HEXAGRAM ================= */
+let hexData=[];
+let formulaData=[];
+
+const HEX_SHEET="1eYJ26LpAL3XV9l95-6r4nEvR3m_ksITatkMH4eKxlN4";
+const FORMULA_SHEET="1aHGUMyg-524vwzfcEcs8JPFePnbj5Ss06QI7o7T8UqU";
+
+const MERIDIANS=["LU","LI","ST","SP","HT","SI","UB","KD","PC","TW","GB","LV"];
+let activeMeridians=[...MERIDIANS];
+let symptomFilters={};
+
+/* ================= HEXAGRAM LOGIC ================= */
+
+function getBinary(arr){ return arr.join(""); }
 
 function getOutcome(){
-return lines.map((v,i)=>{
-if(!moving[i]) return v;
-return v ? 0 : 1;
-});
+return lines.map((v,i)=> moving[i] ? (v?0:1) : v);
 }
 
 function getNuclear(){
 return [lines[1],lines[2],lines[3],lines[2],lines[3],lines[4]];
 }
 
+function findHex(binary){
+return hexData.find(h=>h.binary===binary);
+}
+
 /* ================= DRAW ================= */
 
-function drawOriginal(){
+function drawOriginal(hex){
+
 const c=document.getElementById("original");
 c.innerHTML="";
 
@@ -167,9 +215,10 @@ update();
 let right=document.createElement("div");
 right.className="marker";
 
-/* 🔥 SUBJECT / OBJECT */
-if(i+1===subjectLine) right.innerText="S";
-if(i+1===objectLine) right.innerText="O";
+if(hex){
+if(i+1===hex.subject) right.innerText="S";
+if(i+1===hex.object) right.innerText="O";
+}
 
 row.append(left,line,right);
 c.appendChild(row);
@@ -189,47 +238,70 @@ c.appendChild(row);
 }
 }
 
-/* ================= TAGS ================= */
-
-function renderTags(id,arr){
-const c=document.getElementById(id);
-c.innerHTML="";
-arr.forEach(t=>{
-let tag=document.createElement("span");
-tag.className="tag";
-tag.innerText=t;
-c.appendChild(tag);
-});
-}
-
 /* ================= UPDATE ================= */
 
 function update(){
 
-drawOriginal();
+const orig=findHex(getBinary(lines));
+const nuc=findHex(getBinary(getNuclear()));
+const out=findHex(getBinary(getOutcome()));
 
-const nuclear=getNuclear();
-const outcome=getOutcome();
+drawOriginal(orig);
+drawStatic("nuclear",getNuclear());
+drawStatic("outcome",getOutcome());
 
-drawStatic("nuclear",nuclear);
-drawStatic("outcome",outcome);
+renderHexData("orig",orig);
+renderHexData("nuc",nuc);
+renderHexData("out",out);
 
-/* 🔥 DEMO TAGS (replace with sheet later) */
-renderTags("orig-tags",["LV","SP"]);
-renderTags("nuc-tags",["HT"]);
-renderTags("out-tags",["KD"]);
+renderInfo();
+renderFormulas();
+}
 
-/* NOTES */
-document.getElementById("orig-notes").innerText="Notes here";
-document.getElementById("nuc-notes").innerText="Notes here";
-document.getElementById("out-notes").innerText="Notes here";
+/* ================= RENDER ================= */
 
-/* INFO */
-document.getElementById("hex-info").innerText="Hexagram details here";
+function renderHexData(prefix,hex){
+if(!hex) return;
 
+document.getElementById(prefix+"-title").innerText=
+`${hex.number} ${hex.chinese} ${hex.name}\n${hex.english}`;
+
+renderTags(prefix+"-tags",hex.meridians);
+document.getElementById(prefix+"-notes").innerText=hex.notes;
+}
+
+function renderTags(id,str){
+const c=document.getElementById(id);
+c.innerHTML="";
+if(!str) return;
+
+str.split(",").forEach(t=>{
+let tag=document.createElement("span");
+tag.className="tag";
+tag.innerText=t.trim();
+c.appendChild(tag);
+});
+}
+
+function renderInfo(){
+const hex=currentHex==="orig"
+? findHex(getBinary(lines))
+: currentHex==="nuc"
+? findHex(getBinary(getNuclear()))
+: findHex(getBinary(getOutcome()));
+
+if(!hex) return;
+
+document.getElementById("hex-info").innerText=
+`${hex.infoS}\n${hex.infoT}\n${hex.infoU}\n${hex.infoV}\n${hex.infoW}`;
 }
 
 /* ================= UI ================= */
+
+function selectHex(type){
+currentHex=type;
+renderInfo();
+}
 
 function toggleInfo(){
 document.getElementById("hex-info").classList.toggle("hidden");
@@ -247,7 +319,36 @@ moving=Array.from({length:6},()=>Math.random()>0.5);
 update();
 }
 
+/* ================= LOAD ================= */
+
+async function loadHex(){
+
+const url=`https://docs.google.com/spreadsheets/d/${HEX_SHEET}/gviz/tq?tqx=out:json`;
+const res=await fetch(url);
+const text=await res.text();
+const json=JSON.parse(text.substring(47).slice(0,-2));
+
+hexData=json.table.rows.map(r=>({
+number:r.c[0]?.v,
+binary:String(r.c[1]?.v).padStart(6,"0"),
+name:r.c[2]?.v,
+subject:r.c[3]?.v,
+object:r.c[4]?.v,
+english:r.c[5]?.v,
+chinese:r.c[6]?.v,
+meridians:r.c[7]?.v,
+notes:r.c[17]?.v,
+infoS:r.c[18]?.v,
+infoT:r.c[19]?.v,
+infoU:r.c[20]?.v,
+infoV:r.c[21]?.v,
+infoW:r.c[22]?.v
+}));
+
 update();
+}
+
+loadHex();
 
 </script>
 
