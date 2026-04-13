@@ -22,7 +22,7 @@ body { font-family: Arial; text-align:center; }
   margin:6px 0;
 }
 
-.marker { width:25px; text-align:center; }
+.marker { width:25px; text-align:center; font-size:12px; }
 
 .circle {
   width:16px;height:16px;border-radius:50%;
@@ -45,30 +45,15 @@ body { font-family: Arial; text-align:center; }
   margin:2px;
   border-radius:12px;
   font-size:11px;
-  cursor:pointer;
 }
-.tag.active { background:#333;color:white; }
 
-.filter-panel {
-  display:none;
-  border:1px solid #ccc;
-  padding:8px;
-  max-height:200px;
-  overflow:auto;
+.section {
+  max-width:1000px;
+  margin:20px auto;
   text-align:left;
-  width:200px;
-  margin:auto;
 }
-
-.info { max-width:1000px; margin:20px auto; text-align:left; }
-
-.category-header { font-weight:bold; cursor:pointer; }
 
 .hidden { display:none; }
-
-.formula-row { display:flex; padding:6px; cursor:pointer; }
-.formula-name { width:50%; }
-.formula-tags { width:50%; display:flex; flex-wrap:wrap; }
 
 </style>
 </head>
@@ -84,67 +69,68 @@ body { font-family: Arial; text-align:center; }
 
 <div class="hex-block">
 <h3>Original</h3>
-<div id="orig-title"></div>
 <div id="original"></div>
 <div id="orig-tags"></div>
 <div id="orig-notes"></div>
-<input type="radio" checked>
-</div>
-
-<div>
-<div id="top-trigram"></div>
-<div id="top-tags"></div>
-<div style="height:40px;"></div>
-<div id="bottom-trigram"></div>
-<div id="bottom-tags"></div>
 </div>
 
 <div class="hex-block">
 <h3>Nuclear</h3>
-<div id="nuc-title"></div>
 <div id="nuclear"></div>
 <div id="nuc-tags"></div>
 <div id="nuc-notes"></div>
-<input type="radio">
 </div>
 
 <div class="hex-block">
 <h3>Outcome</h3>
-<div id="out-title"></div>
 <div id="outcome"></div>
 <div id="out-tags"></div>
 <div id="out-notes"></div>
-<input type="radio">
 </div>
 
 </div>
 
-<h3>Meridian Filter</h3>
+<!-- 🔥 HEXAGRAM INFO -->
+<div class="section">
+<h3 onclick="toggleInfo()" style="cursor:pointer;">Hexagram Information ▼</h3>
+<div id="hex-info"></div>
+</div>
+
+<!-- FILTER -->
+<div class="section">
+<h3>Meridians</h3>
 <div id="meridian-filter"></div>
+</div>
 
-<h3>Symptom Filters</h3>
-<div id="symptom-buttons"></div>
-<div id="symptom-panels"></div>
-
-<h3>Hexagram Info</h3>
-<div id="hex-info" class="info"></div>
-
+<div class="section">
 <h3>Formulas</h3>
 <div id="formula-list"></div>
+</div>
 
 <script>
 
-const MERIDIANS=["LU","LI","ST","SP","HT","SI","UB","KD","PC","TW","GB","LV"];
+/* ================= STATE ================= */
 
 let lines=[1,1,1,1,1,1];
 let moving=[false,false,false,false,false,false];
 
-let activeMeridians=[...MERIDIANS];
-let symptomFilters={};
-
-let formulaData=[];
+let subjectLine=3;
+let objectLine=6;
 
 /* ================= HEXAGRAM ================= */
+
+function getOutcome(){
+return lines.map((v,i)=>{
+if(!moving[i]) return v;
+return v ? 0 : 1;
+});
+}
+
+function getNuclear(){
+return [lines[1],lines[2],lines[3],lines[2],lines[3],lines[4]];
+}
+
+/* ================= DRAW ================= */
 
 function drawOriginal(){
 const c=document.getElementById("original");
@@ -181,6 +167,10 @@ update();
 let right=document.createElement("div");
 right.className="marker";
 
+/* 🔥 SUBJECT / OBJECT */
+if(i+1===subjectLine) right.innerText="S";
+if(i+1===objectLine) right.innerText="O";
+
 row.append(left,line,right);
 c.appendChild(row);
 }
@@ -199,176 +189,50 @@ c.appendChild(row);
 }
 }
 
-/* ================= FILTERS ================= */
+/* ================= TAGS ================= */
 
-function buildMeridianFilter(){
-const c=document.getElementById("meridian-filter");
+function renderTags(id,arr){
+const c=document.getElementById(id);
 c.innerHTML="";
-
-MERIDIANS.forEach(m=>{
+arr.forEach(t=>{
 let tag=document.createElement("span");
-tag.className="tag active";
-tag.innerText=m;
-
-tag.onclick=()=>{
-tag.classList.toggle("active");
-
-if(activeMeridians.includes(m)){
-activeMeridians=activeMeridians.filter(x=>x!==m);
-}else{
-activeMeridians.push(m);
-}
-
-renderFormulas();
-};
-
+tag.className="tag";
+tag.innerText=t;
 c.appendChild(tag);
 });
 }
 
-function parseSymptoms(val){
-if(!val) return [];
-return val.split(",").map(x=>x.trim());
-}
-
-function buildSymptomFilters(){
-
-const names=["Line 1","Line 2","Line 3","Line 4","Line 5","Line 6","General"];
-const cols=[17,18,19,20,21,22,23];
-
-const btnC=document.getElementById("symptom-buttons");
-const panelC=document.getElementById("symptom-panels");
-
-btnC.innerHTML="";
-panelC.innerHTML="";
-
-names.forEach((name,i)=>{
-
-symptomFilters[name]=[];
-
-let btn=document.createElement("button");
-btn.innerText=name;
-
-let panel=document.createElement("div");
-panel.className="filter-panel";
-
-btn.onclick=()=>{
-panel.style.display=panel.style.display==="block"?"none":"block";
-};
-
-let set=new Set();
-
-formulaData.forEach(f=>{
-parseSymptoms(f.raw[cols[i]]?.v).forEach(s=>set.add(s));
-});
-
-[...set].sort().forEach(s=>{
-
-let label=document.createElement("label");
-
-let cb=document.createElement("input");
-cb.type="checkbox";
-
-cb.onchange=()=>{
-if(cb.checked){
-symptomFilters[name].push(s);
-}else{
-symptomFilters[name]=symptomFilters[name].filter(x=>x!==s);
-}
-
-panel.style.display="none";
-renderFormulas();
-};
-
-label.append(cb," "+s);
-panel.appendChild(label);
-panel.appendChild(document.createElement("br"));
-});
-
-btnC.appendChild(btn);
-panelC.appendChild(panel);
-
-});
-}
-
-/* ================= FORMULAS ================= */
-
-function renderFormulas(){
-
-const c=document.getElementById("formula-list");
-c.innerHTML="";
-
-const grouped={};
-
-formulaData.forEach(f=>{
-
-const mMatch=f.meridians.split(",")
-.some(m=>activeMeridians.includes(m.trim()));
-
-if(!mMatch) return;
-
-const names=["Line 1","Line 2","Line 3","Line 4","Line 5","Line 6","General"];
-const cols=[17,18,19,20,21,22,23];
-
-for(let i=0;i<names.length;i++){
-let selected=symptomFilters[names[i]];
-if(selected.length){
-let vals=parseSymptoms(f.raw[cols[i]]?.v);
-if(!selected.some(v=>vals.includes(v))) return;
-}
-}
-
-if(!grouped[f.category]) grouped[f.category]=[];
-grouped[f.category].push(f);
-
-});
-
-Object.keys(grouped).forEach(cat=>{
-
-let header=document.createElement("div");
-header.className="category-header";
-header.innerText=`${cat} (${grouped[cat].length})`;
-
-let content=document.createElement("div");
-
-header.onclick=()=>content.classList.toggle("hidden");
-
-grouped[cat].forEach(f=>{
-
-let row=document.createElement("div");
-row.className="formula-row";
-
-let name=document.createElement("div");
-name.className="formula-name";
-name.innerText=f.name;
-
-let tags=document.createElement("div");
-tags.className="formula-tags";
-
-f.meridians.split(",").forEach(m=>{
-let tag=document.createElement("span");
-tag.className="tag";
-tag.innerText=m.trim();
-tags.appendChild(tag);
-});
-
-row.append(name,tags);
-content.appendChild(row);
-});
-
-c.appendChild(header);
-c.appendChild(content);
-
-});
-}
-
-/* ================= CORE ================= */
+/* ================= UPDATE ================= */
 
 function update(){
+
 drawOriginal();
-drawStatic("nuclear",lines);
-drawStatic("outcome",lines);
-renderFormulas();
+
+const nuclear=getNuclear();
+const outcome=getOutcome();
+
+drawStatic("nuclear",nuclear);
+drawStatic("outcome",outcome);
+
+/* 🔥 DEMO TAGS (replace with sheet later) */
+renderTags("orig-tags",["LV","SP"]);
+renderTags("nuc-tags",["HT"]);
+renderTags("out-tags",["KD"]);
+
+/* NOTES */
+document.getElementById("orig-notes").innerText="Notes here";
+document.getElementById("nuc-notes").innerText="Notes here";
+document.getElementById("out-notes").innerText="Notes here";
+
+/* INFO */
+document.getElementById("hex-info").innerText="Hexagram details here";
+
+}
+
+/* ================= UI ================= */
+
+function toggleInfo(){
+document.getElementById("hex-info").classList.toggle("hidden");
 }
 
 function resetAll(){
@@ -383,28 +247,7 @@ moving=Array.from({length:6},()=>Math.random()>0.5);
 update();
 }
 
-/* ================= LOAD ================= */
-
-async function loadFormulas(){
-
-const url="https://docs.google.com/spreadsheets/d/1aHGUMyg-524vwzfcEcs8JPFePnbj5Ss06QI7o7T8UqU/gviz/tq?tqx=out:json&gid=282292594";
-const res=await fetch(url);
-const text=await res.text();
-const json=JSON.parse(text.substring(47).slice(0,-2));
-
-formulaData=json.table.rows.slice(1).map(r=>({
-raw:r.c,
-name:r.c[0]?.v||"",
-category:r.c[3]?.v||"",
-meridians:r.c[4]?.v||""
-}));
-
-buildMeridianFilter();
-buildSymptomFilters();
 update();
-}
-
-loadFormulas();
 
 </script>
 
