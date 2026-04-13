@@ -6,22 +6,19 @@
 <style>
 body { font-family: Arial; text-align:center; }
 
-button { margin:6px; padding:6px 10px; cursor:pointer; }
-
 .container {
   display:flex;
   justify-content:center;
   gap:30px;
   margin-top:20px;
-  align-items:flex-start;
 }
 
 .hex-block { width:220px; }
 
 .row {
   display:flex;
-  justify-content:center;
   align-items:center;
+  justify-content:center;
   margin:6px 0;
 }
 
@@ -50,50 +47,28 @@ button { margin:6px; padding:6px 10px; cursor:pointer; }
   font-size:11px;
   cursor:pointer;
 }
-
 .tag.active { background:#333;color:white; }
 
 .filter-panel {
   display:none;
   border:1px solid #ccc;
-  padding:10px;
-  width:220px;
+  padding:8px;
   max-height:200px;
   overflow:auto;
-  margin:5px auto;
   text-align:left;
+  width:200px;
+  margin:auto;
 }
 
-.category-header {
-  font-weight:bold;
-  cursor:pointer;
-  margin-top:10px;
-}
+.info { max-width:1000px; margin:20px auto; text-align:left; }
+
+.category-header { font-weight:bold; cursor:pointer; }
 
 .hidden { display:none; }
 
-.formula-row {
-  display:flex;
-  padding:6px;
-  cursor:pointer;
-}
-
+.formula-row { display:flex; padding:6px; cursor:pointer; }
 .formula-name { width:50%; }
 .formula-tags { width:50%; display:flex; flex-wrap:wrap; }
-
-.popup {
-  position:fixed;
-  top:50%;
-  left:50%;
-  transform:translate(-50%,-50%);
-  background:white;
-  padding:20px;
-  width:400px;
-  max-height:500px;
-  overflow:auto;
-  border:1px solid #ccc;
-  text-align:left;
-}
 
 </style>
 </head>
@@ -113,12 +88,15 @@ button { margin:6px; padding:6px 10px; cursor:pointer; }
 <div id="original"></div>
 <div id="orig-tags"></div>
 <div id="orig-notes"></div>
-<input type="radio" name="hex" checked onclick="selectHex('orig')">
+<input type="radio" checked>
 </div>
 
 <div>
 <div id="top-trigram"></div>
+<div id="top-tags"></div>
+<div style="height:40px;"></div>
 <div id="bottom-trigram"></div>
+<div id="bottom-tags"></div>
 </div>
 
 <div class="hex-block">
@@ -127,7 +105,7 @@ button { margin:6px; padding:6px 10px; cursor:pointer; }
 <div id="nuclear"></div>
 <div id="nuc-tags"></div>
 <div id="nuc-notes"></div>
-<input type="radio" name="hex" onclick="selectHex('nuc')">
+<input type="radio">
 </div>
 
 <div class="hex-block">
@@ -136,22 +114,23 @@ button { margin:6px; padding:6px 10px; cursor:pointer; }
 <div id="outcome"></div>
 <div id="out-tags"></div>
 <div id="out-notes"></div>
-<input type="radio" name="hex" onclick="selectHex('out')">
+<input type="radio">
 </div>
 
 </div>
 
-<h3>Filters</h3>
-<div id="filter-bar"></div>
-<div id="filter-buttons"></div>
-<div id="filter-panels"></div>
+<h3>Meridian Filter</h3>
+<div id="meridian-filter"></div>
 
-<button onclick="resetFilter()">Reset Filter</button>
+<h3>Symptom Filters</h3>
+<div id="symptom-buttons"></div>
+<div id="symptom-panels"></div>
+
+<h3>Hexagram Info</h3>
+<div id="hex-info" class="info"></div>
 
 <h3>Formulas</h3>
 <div id="formula-list"></div>
-
-<div id="popup" class="popup hidden"></div>
 
 <script>
 
@@ -161,20 +140,18 @@ let lines=[1,1,1,1,1,1];
 let moving=[false,false,false,false,false,false];
 
 let activeMeridians=[...MERIDIANS];
-let lineFilters={};
+let symptomFilters={};
 
 let formulaData=[];
-let formulaHeaders=[];
 
-const FORMULA_SHEET="1aHGUMyg-524vwzfcEcs8JPFePnbj5Ss06QI7o7T8UqU";
+/* ================= HEXAGRAM ================= */
 
-/* HEXAGRAM DRAW */
-
-function drawHex(id,arr){
-const c=document.getElementById(id);
+function drawOriginal(){
+const c=document.getElementById("original");
 c.innerHTML="";
 
 for(let i=5;i>=0;i--){
+
 let row=document.createElement("div");
 row.className="row";
 
@@ -184,7 +161,7 @@ left.className="marker";
 let circle=document.createElement("div");
 circle.className="circle";
 
-if(moving[i]) circle.innerText=arr[i]?"O":"X";
+if(moving[i]) circle.innerText=lines[i]?"O":"X";
 
 circle.onclick=()=>{
 moving[i]=!moving[i];
@@ -194,7 +171,7 @@ update();
 left.appendChild(circle);
 
 let line=document.createElement("div");
-line.className="line "+(arr[i]?"yang":"yin");
+line.className="line "+(lines[i]?"yang":"yin");
 
 line.onclick=()=>{
 lines[i]=lines[i]?0:1;
@@ -209,22 +186,65 @@ c.appendChild(row);
 }
 }
 
-/* FILTER BUTTONS */
+function drawStatic(id,arr){
+const c=document.getElementById(id);
+c.innerHTML="";
+for(let i=5;i>=0;i--){
+let row=document.createElement("div");
+row.className="row";
+let line=document.createElement("div");
+line.className="line "+(arr[i]?"yang":"yin");
+row.appendChild(line);
+c.appendChild(row);
+}
+}
 
-function buildFilters(){
+/* ================= FILTERS ================= */
+
+function buildMeridianFilter(){
+const c=document.getElementById("meridian-filter");
+c.innerHTML="";
+
+MERIDIANS.forEach(m=>{
+let tag=document.createElement("span");
+tag.className="tag active";
+tag.innerText=m;
+
+tag.onclick=()=>{
+tag.classList.toggle("active");
+
+if(activeMeridians.includes(m)){
+activeMeridians=activeMeridians.filter(x=>x!==m);
+}else{
+activeMeridians.push(m);
+}
+
+renderFormulas();
+};
+
+c.appendChild(tag);
+});
+}
+
+function parseSymptoms(val){
+if(!val) return [];
+return val.split(",").map(x=>x.trim());
+}
+
+function buildSymptomFilters(){
 
 const names=["Line 1","Line 2","Line 3","Line 4","Line 5","Line 6","General"];
 const cols=[17,18,19,20,21,22,23];
 
-const btnContainer=document.getElementById("filter-buttons");
-const panelContainer=document.getElementById("filter-panels");
+const btnC=document.getElementById("symptom-buttons");
+const panelC=document.getElementById("symptom-panels");
 
-btnContainer.innerHTML="";
-panelContainer.innerHTML="";
+btnC.innerHTML="";
+panelC.innerHTML="";
 
 names.forEach((name,i)=>{
 
-lineFilters[name]=[];
+symptomFilters[name]=[];
 
 let btn=document.createElement("button");
 btn.innerText=name;
@@ -236,14 +256,13 @@ btn.onclick=()=>{
 panel.style.display=panel.style.display==="block"?"none":"block";
 };
 
-let values=new Set();
+let set=new Set();
 
 formulaData.forEach(f=>{
-let v=f.raw[cols[i]]?.v;
-if(v) values.add(v);
+parseSymptoms(f.raw[cols[i]]?.v).forEach(s=>set.add(s));
 });
 
-[...values].sort().forEach(v=>{
+[...set].sort().forEach(s=>{
 
 let label=document.createElement("label");
 
@@ -252,35 +271,32 @@ cb.type="checkbox";
 
 cb.onchange=()=>{
 if(cb.checked){
-lineFilters[name].push(v);
+symptomFilters[name].push(s);
 }else{
-lineFilters[name]=lineFilters[name].filter(x=>x!==v);
+symptomFilters[name]=symptomFilters[name].filter(x=>x!==s);
 }
 
-// 🔥 AUTO CLOSE AFTER CLICK
 panel.style.display="none";
-
 renderFormulas();
 };
 
-label.append(cb," "+v);
+label.append(cb," "+s);
 panel.appendChild(label);
 panel.appendChild(document.createElement("br"));
-
 });
 
-btnContainer.appendChild(btn);
-panelContainer.appendChild(panel);
+btnC.appendChild(btn);
+panelC.appendChild(panel);
 
 });
 }
 
-/* FORMULAS */
+/* ================= FORMULAS ================= */
 
 function renderFormulas(){
 
-const container=document.getElementById("formula-list");
-container.innerHTML="";
+const c=document.getElementById("formula-list");
+c.innerHTML="";
 
 const grouped={};
 
@@ -295,10 +311,10 @@ const names=["Line 1","Line 2","Line 3","Line 4","Line 5","Line 6","General"];
 const cols=[17,18,19,20,21,22,23];
 
 for(let i=0;i<names.length;i++){
-let selected=lineFilters[names[i]];
+let selected=symptomFilters[names[i]];
 if(selected.length){
-let val=f.raw[cols[i]]?.v;
-if(!selected.includes(val)) return;
+let vals=parseSymptoms(f.raw[cols[i]]?.v);
+if(!selected.some(v=>vals.includes(v))) return;
 }
 }
 
@@ -309,17 +325,16 @@ grouped[f.category].push(f);
 
 Object.keys(grouped).forEach(cat=>{
 
-let list=grouped[cat];
-
 let header=document.createElement("div");
 header.className="category-header";
-header.innerText=`${cat} (${list.length})`;
+header.innerText=`${cat} (${grouped[cat].length})`;
 
 let content=document.createElement("div");
 
 header.onclick=()=>content.classList.toggle("hidden");
 
-list.forEach(f=>{
+grouped[cat].forEach(f=>{
+
 let row=document.createElement("div");
 row.className="formula-row";
 
@@ -338,44 +353,21 @@ tags.appendChild(tag);
 });
 
 row.append(name,tags);
-row.onclick=()=>showPopup(f);
-
 content.appendChild(row);
 });
 
-container.appendChild(header);
-container.appendChild(content);
+c.appendChild(header);
+c.appendChild(content);
 
 });
 }
 
-/* POPUP */
+/* ================= CORE ================= */
 
-function showPopup(f){
-const popup=document.getElementById("popup");
-popup.innerHTML="";
-popup.classList.remove("hidden");
-
-f.raw.slice(0,17).forEach((cell,i)=>{
-if(cell && cell.v){
-let row=document.createElement("div");
-row.innerHTML=`<b>${formulaHeaders[i]}:</b> ${cell.v}`;
-popup.appendChild(row);
-}
-});
-
-let close=document.createElement("button");
-close.innerText="Close";
-close.onclick=()=>popup.classList.add("hidden");
-
-popup.appendChild(close);
-}
-
-/* RESET */
-
-function resetFilter(){
-activeMeridians=[...MERIDIANS];
-buildFilters();
+function update(){
+drawOriginal();
+drawStatic("nuclear",lines);
+drawStatic("outcome",lines);
 renderFormulas();
 }
 
@@ -385,43 +377,31 @@ moving=[false,false,false,false,false,false];
 update();
 }
 
-/* RANDOM */
-
 function randomHexagram(){
 lines=Array.from({length:6},()=>Math.random()>0.5?1:0);
 moving=Array.from({length:6},()=>Math.random()>0.5);
 update();
 }
 
-/* LOAD */
+/* ================= LOAD ================= */
 
 async function loadFormulas(){
 
-const url=`https://docs.google.com/spreadsheets/d/${FORMULA_SHEET}/gviz/tq?tqx=out:json&gid=282292594`;
+const url="https://docs.google.com/spreadsheets/d/1aHGUMyg-524vwzfcEcs8JPFePnbj5Ss06QI7o7T8UqU/gviz/tq?tqx=out:json&gid=282292594";
 const res=await fetch(url);
 const text=await res.text();
 const json=JSON.parse(text.substring(47).slice(0,-2));
 
-const rows=json.table.rows;
-
-formulaHeaders=rows[0].c.map(c=>c?.v||"");
-
-formulaData=rows.slice(1).map(r=>({
+formulaData=json.table.rows.slice(1).map(r=>({
 raw:r.c,
 name:r.c[0]?.v||"",
 category:r.c[3]?.v||"",
 meridians:r.c[4]?.v||""
 }));
 
-buildFilters();
-renderFormulas();
+buildMeridianFilter();
+buildSymptomFilters();
 update();
-}
-
-function update(){
-drawHex("original",lines);
-drawHex("nuclear",lines);
-drawHex("outcome",lines);
 }
 
 loadFormulas();
