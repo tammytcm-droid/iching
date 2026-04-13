@@ -625,7 +625,7 @@ row.className="formula-row";
 /* NAME */
 let name=document.createElement("div");
 name.className="formula-name";
-name.innerText=`${f.name} ${f.score>0 ? "("+f.score+")":""}`;
+name.innerText=`${f.name} (${Math.round(f.mDensity*100)}%)`;
 
 /* TAGS */
 let tags=document.createElement("div");
