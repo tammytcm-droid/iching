@@ -196,3 +196,420 @@ BMAC or e-transfer me at tammylee.drac@gmail.com. tia.
 <button onclick="randomHexagram()">Random</button>
 
 <!-- KEEP REST OF YOUR LAST WORKING CODE BELOW THIS LINE -->
+
+<div class="container">
+
+<div class="hex-block">
+<h3>Original</h3>
+<div id="orig-title"></div>
+<div id="original"></div>
+<div id="orig-tags"></div>
+<div id="orig-notes"></div>
+<input type="radio" name="hex" checked onclick="selectHex('orig')">
+</div>
+
+<div class="trigram-box">
+<div id="top-trigram" class="trigram"></div>
+<div id="top-tags"></div>
+
+<div style="height:40px;"></div>
+
+<div id="bottom-trigram" class="trigram"></div>
+<div id="bottom-tags"></div>
+</div>
+
+<div class="hex-block">
+<h3>Nuclear</h3>
+<div id="nuc-title"></div>
+<div id="nuclear"></div>
+<div id="nuc-tags"></div>
+<div id="nuc-notes"></div>
+<input type="radio" name="hex" onclick="selectHex('nuc')">
+</div>
+
+<div class="hex-block">
+<h3>Outcome</h3>
+<div id="out-title"></div>
+<div id="outcome"></div>
+<div id="out-tags"></div>
+<div id="out-notes"></div>
+<input type="radio" name="hex" onclick="selectHex('out')">
+</div>
+
+</div>
+
+<div class="section">
+<h3 onclick="toggleInfo()">Hexagram Info ▼</h3>
+<div id="hex-info"></div>
+</div>
+
+<div class="section">
+<h3>Meridian Filter</h3>
+<div id="meridian-filter"></div>
+
+<h3>Symptom Filters</h3>
+<div id="symptom-filters"></div>
+</div>
+
+<div class="section">
+<h3>Formulas</h3>
+<div id="formula-list"></div>
+</div>
+
+<div id="popup" class="popup hidden"></div>
+
+<script>
+
+/* STATE */
+let lines=[1,1,1,1,1,1];
+let moving=[false,false,false,false,false,false];
+let currentHex="orig";
+
+let hexData=[];
+let formulaData=[];
+let headers=[];
+
+let activeMeridians=[];
+let symptomFilters={};
+
+const MERIDIANS=["LU","LI","ST","SP","HT","SI","UB","KD","PC","TW","GB","LV"];
+const symptomNames=["Line 1","Line 2","Line 3","Line 4","Line 5","Line 6","General"];
+const symptomCols=[17,18,19,20,21,22,23];
+
+/* RESET */
+function resetFilters(){
+activeMeridians=[...MERIDIANS];
+symptomFilters={};
+renderMeridianFilter();
+buildSymptomFilters();
+renderFormulas();
+}
+
+/* HEXAGRAM LOGIC */
+function getBinary(a){ return a.join(""); }
+function getOutcome(){ return lines.map((v,i)=> moving[i]? (v?0:1):v); }
+function getNuclear(){ return [lines[1],lines[2],lines[3],lines[2],lines[3],lines[4]]; }
+function findHex(bin){ return hexData.find(h=>h.binary===bin); }
+
+/* DRAW */
+function drawOriginal(hex){
+let c=document.getElementById("original"); c.innerHTML="";
+for(let i=5;i>=0;i--){
+let row=document.createElement("div"); row.className="row";
+
+let left=document.createElement("div");
+let circle=document.createElement("div");
+circle.className="circle";
+if(moving[i]) circle.innerText=lines[i]?"O":"X";
+circle.onclick=()=>{moving[i]=!moving[i];update();};
+left.appendChild(circle);
+
+let line=document.createElement("div");
+line.className="line "+(lines[i]?"yang":"yin");
+line.onclick=()=>{lines[i]=lines[i]?0:1;update();};
+
+let right=document.createElement("div");
+if(hex){
+if(i+1===hex.subject) right.innerText="S";
+if(i+1===hex.object) right.innerText="O";
+}
+
+row.append(left,line,right);
+c.appendChild(row);
+}
+}
+
+function drawStatic(id,a){
+let c=document.getElementById(id); c.innerHTML="";
+for(let i=5;i>=0;i--){
+let row=document.createElement("div");
+let line=document.createElement("div");
+line.className="line "+(a[i]?"yang":"yin");
+row.appendChild(line);
+c.appendChild(row);
+}
+}
+
+/* TAGS */
+function renderTags(id,str){
+let c=document.getElementById(id); c.innerHTML="";
+if(!str) return;
+str.split(",").forEach(t=>{
+let tag=document.createElement("span");
+tag.className="tag";
+tag.innerText=t.trim();
+c.appendChild(tag);
+});
+}
+
+/* UPDATE */
+function update(){
+
+let orig=findHex(getBinary(lines));
+let nuc=findHex(getBinary(getNuclear()));
+let out=findHex(getBinary(getOutcome()));
+
+drawOriginal(orig);
+drawStatic("nuclear",getNuclear());
+drawStatic("outcome",getOutcome());
+
+renderHex("orig",orig);
+renderHex("nuc",nuc);
+renderHex("out",out);
+
+/* TRIGRAMS */
+if(orig){
+document.getElementById("top-trigram").innerText=orig.top||"";
+document.getElementById("bottom-trigram").innerText=orig.bottom||"";
+renderTags("top-tags",orig.topEH);
+renderTags("bottom-tags",orig.bottomEH);
+}
+
+/* MERIDIANS AUTO */
+let m=[];
+[orig,nuc,out].forEach(h=>{
+if(h?.meridians){
+m=m.concat(h.meridians.split(",").map(x=>x.trim()));
+}
+});
+activeMeridians=[...new Set(m)];
+
+renderMeridianFilter();
+renderInfo();
+renderFormulas();
+}
+
+/* RENDER HEX */
+function renderHex(p,h){
+if(!h) return;
+document.getElementById(p+"-title").innerText=
+`${h.number} ${h.chinese} ${h.name}\n${h.english}`;
+renderTags(p+"-tags",h.meridians);
+document.getElementById(p+"-notes").innerText=h.notes;
+}
+
+function renderInfo(){
+let h=currentHex==="orig"?findHex(getBinary(lines))
+:currentHex==="nuc"?findHex(getBinary(getNuclear()))
+:findHex(getBinary(getOutcome()));
+
+if(!h) return;
+
+document.getElementById("hex-info").innerText=
+`${h.infoS}\n${h.infoT}\n${h.infoU}\n${h.infoV}\n${h.infoW}`;
+}
+
+function selectHex(t){ currentHex=t; renderInfo(); }
+function toggleInfo(){ document.getElementById("hex-info").classList.toggle("hidden"); }
+
+/* MERIDIAN FILTER */
+function renderMeridianFilter(){
+let c=document.getElementById("meridian-filter"); c.innerHTML="";
+MERIDIANS.forEach(m=>{
+let tag=document.createElement("span");
+tag.className="tag "+(activeMeridians.includes(m)?"active":"");
+tag.innerText=m;
+tag.onclick=()=>{
+if(activeMeridians.includes(m)){
+activeMeridians=activeMeridians.filter(x=>x!==m);
+}else{
+activeMeridians.push(m);
+}
+renderMeridianFilter();
+renderFormulas();
+};
+c.appendChild(tag);
+});
+}
+
+/* SYMPTOM FILTERS */
+function buildSymptomFilters(){
+let c=document.getElementById("symptom-filters"); c.innerHTML="";
+
+symptomNames.forEach((name,i)=>{
+
+let wrap=document.createElement("div"); wrap.className="dropdown";
+
+let btn=document.createElement("button");
+btn.innerText=name;
+
+let panel=document.createElement("div");
+panel.className="dropdown-content";
+
+btn.onclick=(e)=>{
+e.stopPropagation();
+panel.style.display = panel.style.display==="block" ? "none":"block";
+};
+
+let set=new Set();
+
+formulaData.forEach(f=>{
+let val=f.raw[symptomCols[i]]?.v;
+if(val){
+val.split(",").forEach(v=>set.add(v.trim()));
+}
+});
+
+[...set].sort().forEach(s=>{
+let label=document.createElement("label");
+let cb=document.createElement("input");
+cb.type="checkbox";
+
+cb.onchange=()=>{
+if(!symptomFilters[name]) symptomFilters[name]=[];
+
+if(cb.checked){
+symptomFilters[name].push(s);
+}else{
+symptomFilters[name]=symptomFilters[name].filter(x=>x!==s);
+}
+renderFormulas();
+};
+
+label.append(cb," "+s);
+panel.append(label,document.createElement("br"));
+});
+
+wrap.append(btn,panel);
+c.appendChild(wrap);
+
+});
+
+document.addEventListener("click",()=>{
+document.querySelectorAll(".dropdown-content").forEach(p=>p.style.display="none");
+});
+}
+
+/* FORMULAS */
+function renderFormulas(){
+let c=document.getElementById("formula-list"); c.innerHTML="";
+let grouped={};
+
+formulaData.forEach(f=>{
+
+if(!f.meridians.split(",").some(m=>activeMeridians.includes(m.trim()))) return;
+
+for(let i=0;i<7;i++){
+let selected=symptomFilters[symptomNames[i]];
+if(selected?.length){
+let val=f.raw[symptomCols[i]]?.v||"";
+if(!selected.some(s=>val.includes(s))) return;
+}
+}
+
+if(!grouped[f.category]) grouped[f.category]=[];
+grouped[f.category].push(f);
+
+});
+
+Object.keys(grouped).forEach(cat=>{
+
+let head=document.createElement("div");
+head.className="category-header";
+head.innerText=`${cat} (${grouped[cat].length})`;
+
+let box=document.createElement("div");
+box.classList.add("hidden");
+
+head.onclick=()=>box.classList.toggle("hidden");
+
+grouped[cat].forEach(f=>{
+let row=document.createElement("div");
+row.className="formula-row";
+
+let name=document.createElement("div");
+name.className="formula-name";
+name.innerText=f.name;
+
+let tags=document.createElement("div");
+tags.className="formula-tags";
+tags.innerText=f.meridians;
+
+row.append(name,tags);
+row.onclick=()=>showPopup(f);
+
+box.appendChild(row);
+});
+
+c.append(head,box);
+});
+}
+
+/* POPUP */
+function showPopup(f){
+let p=document.getElementById("popup");
+p.innerHTML="";
+p.classList.remove("hidden");
+
+let close=document.createElement("button");
+close.innerText="Close";
+close.style.marginBottom="10px";
+close.onclick=()=>p.classList.add("hidden");
+p.appendChild(close);
+
+f.raw.slice(0,17).forEach((c,i)=>{
+if(c?.v){
+let d=document.createElement("div");
+d.innerHTML=`<b>${headers[i]}:</b> ${c.v}`;
+p.appendChild(d);
+}
+});
+}
+
+/* LOAD */
+async function loadAll(){
+
+let r=await fetch(`https://docs.google.com/spreadsheets/d/1eYJ26LpAL3XV9l95-6r4nEvR3m_ksITatkMH4eKxlN4/gviz/tq?tqx=out:json`);
+let t=await r.text();
+let j=JSON.parse(t.substring(47).slice(0,-2));
+
+hexData=j.table.rows.map(r=>({
+number:r.c[0]?.v,
+binary:String(r.c[1]?.v).padStart(6,"0"),
+name:r.c[2]?.v,
+subject:r.c[3]?.v,
+object:r.c[4]?.v,
+english:r.c[5]?.v,
+chinese:r.c[6]?.v,
+meridians:r.c[7]?.v,
+top:r.c[8]?.v,
+bottom:r.c[9]?.v,
+topEH:r.c[10]?.v,
+bottomEH:r.c[11]?.v,
+notes:r.c[17]?.v,
+infoS:r.c[18]?.v,
+infoT:r.c[19]?.v,
+infoU:r.c[20]?.v,
+infoV:r.c[21]?.v,
+infoW:r.c[22]?.v
+}));
+
+r=await fetch(`https://docs.google.com/spreadsheets/d/1aHGUMyg-524vwzfcEcs8JPFePnbj5Ss06QI7o7T8UqU/gviz/tq?tqx=out:json&gid=282292594`);
+t=await r.text();
+j=JSON.parse(t.substring(47).slice(0,-2));
+
+headers=j.table.rows[0].c.map(c=>c?.v||"");
+
+formulaData=j.table.rows.slice(1).map(r=>({
+raw:r.c,
+name:r.c[0]?.v||"",
+category:r.c[3]?.v||"",
+meridians:r.c[4]?.v||""
+}));
+
+buildSymptomFilters();
+update();
+}
+
+function randomHexagram(){
+lines=Array.from({length:6},()=>Math.random()>0.5?1:0);
+moving=Array.from({length:6},()=>Math.random()>0.5);
+update();
+}
+
+loadAll();
+
+</script>
+
+</body>
+</html>
