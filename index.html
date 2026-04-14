@@ -154,10 +154,17 @@ text-align:left;
 }
 
 /* DROPDOWN */
-.dropdown { display:inline-block; margin:4px; position:relative; }
+.dropdown {
+display:inline-block;
+margin:6px;
+position:relative;
+vertical-align:top;
+}
 .dropdown button {
-font-size:10px;
-padding:3px 6px;
+font-size:11px;
+padding:6px 10px;
+border-radius:6px;
+cursor:pointer;
 }
   
 .dropdown-content {
@@ -169,14 +176,14 @@ max-height:200px;
 overflow:auto;
 padding:8px;
 z-index:100;
+min-width:180px;
 }
 
 /* 🔥 CLINICAL TOOLBAR */
+/* 🔥 CLINICAL TOOLBAR */
 .toolbar {
 display:flex;
-flex-wrap:nowrap;
-overflow-x:auto;
-}
+flex-wrap:wrap;      /* allow wrapping */
 align-items:flex-start;
 gap:20px;
 }
@@ -184,6 +191,10 @@ gap:20px;
 .toolbar-block {
 display:flex;
 flex-direction:column;
+}
+
+.toolbar-block {
+min-width:220px;
 }
 
 .toolbar-label {
