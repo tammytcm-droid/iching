@@ -678,26 +678,6 @@ orderedCats.forEach(cat=>{
 
 } // ✅ end renderFormulas()
 
-/* NAME */
-let name=document.createElement("div");
-name.className="formula-name";
-name.innerText=`${f.name} (${Math.round(f.mDensity*100)}%)`;
-
-/* TAGS */
-let tags=document.createElement("div");
-tags.className="formula-tags";
-tags.innerText=f.meridians;
-
-row.append(name,tags);
-row.onclick=()=>showPopup(f);
-
-box.appendChild(row);
-});
-
-c.append(head,box);
-});
-}
-
 /* POPUP */
 function showPopup(f){
 let p=document.getElementById("popup");
