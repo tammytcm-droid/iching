@@ -201,6 +201,8 @@ Sources - mainly Formulas and Strategies (2nd Ed) (Bensky, at al, 2009), America
 
 <button onclick="resetFilters()">Reset Filters</button>
 <button onclick="randomHexagram()">Random</button>
+<button onclick="resetFilters()">Reset Filters</button>
+<button onclick="randomHexagram()">Random</button>
 
 <!-- KEEP REST OF YOUR LAST WORKING CODE BELOW THIS LINE -->
 
@@ -292,6 +294,15 @@ let symptomFilters={};
 const MERIDIANS=["LU","LI","ST","SP","HT","SI","UB","KD","PC","TW","GB","LV"];
 const symptomNames=["Line 1","Line 2","Line 3","Line 4","Line 5","Line 6","General"];
 const symptomCols=[17,18,19,20,21,22,23];
+
+/* 🔒 PAYWALL */
+let isPaidUser = false;
+
+let freeCategories = ["T-Tonify Qi","T-Tonify Yin"];
+
+if(localStorage.getItem("paid")==="yes"){
+  isPaidUser = true;
+}
 
 /* RESET */
 function resetFilters(){
@@ -556,6 +567,26 @@ if(!selected.some(s=>val.includes(s))) return;
 }
 }
 
+if(!isPaidUser){
+
+let msg=document.createElement("div");
+msg.style.marginTop="15px";
+msg.style.padding="10px";
+msg.style.background="#f5f5f5";
+msg.style.borderRadius="8px";
+msg.style.textAlign="center";
+
+msg.innerHTML = `
+<b>Unlock Full Clinical Access</b><br>
+All formula categories available with $10/year access.<br><br>
+<a href="https://buymeacoffee.com/tammylee.drac" target="_blank">
+Support here →
+</a>
+`;
+
+document.getElementById("formula-list").appendChild(msg);
+}
+  
 /* 🔥 RANKING SCORE */
 let score=0;
 
@@ -602,8 +633,12 @@ totalCount++;
 /* 🔥 UPDATE COUNT */
 document.getElementById("formula-count").innerText=totalCount;
 
-/* RENDER */
 Object.keys(grouped).forEach(cat=>{
+
+/* 🔒 PAYWALL */
+if(!isPaidUser && !freeCategories.includes(cat)){
+  return;
+}
 
 /* SORT BY SCORE */
 grouped[cat].sort((a,b)=>b.score-a.score);
@@ -714,6 +749,22 @@ moving=Array.from({length:6},()=>Math.random()>0.5);
 update();
 }
 
+function unlockAccess(){
+
+let code = prompt("Enter access code:");
+
+if(code === "tcm10"){
+    isPaidUser = true;
+    localStorage.setItem("paid","yes");
+
+    alert("Full access unlocked");
+    renderFormulas();
+
+} else {
+    alert("Incorrect code");
+}
+}
+  
 loadAbbreviations();
   
 loadAll();
