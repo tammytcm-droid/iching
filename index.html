@@ -7,7 +7,7 @@
 body {
 font-family: Arial;
 text-align:center;
-font-size:10px;
+font-size:11px;
 }
 
 /* MESSAGE BOX */
@@ -170,6 +170,28 @@ overflow:auto;
 padding:8px;
 z-index:100;
 }
+
+/* 🔥 CLINICAL TOOLBAR */
+.toolbar {
+display:flex;
+flex-wrap:nowrap;
+overflow-x:auto;
+}
+align-items:flex-start;
+gap:20px;
+}
+
+.toolbar-block {
+display:flex;
+flex-direction:column;
+}
+
+.toolbar-label {
+font-size:10px;
+font-weight:bold;
+margin-bottom:4px;
+}
+
 </style>
 </head>
 
@@ -213,26 +235,7 @@ Sources - mainly Formulas and Strategies (2nd Ed) (Bensky, at al, 2009), America
 ☕ Buy Me a Coffee
 </a>
 </div>
-
-/* 🔥 CLINICAL TOOLBAR */
-.toolbar {
-display:flex;
-flex-wrap:wrap;
-align-items:flex-start;
-gap:20px;
-}
-
-.toolbar-block {
-display:flex;
-flex-direction:column;
-}
-
-.toolbar-label {
-font-size:10px;
-font-weight:bold;
-margin-bottom:4px;
-}
-  
+ 
 <button onclick="resetFilters()">Reset Filters</button>
 <button onclick="randomHexagram()">Random</button>
 <button onclick="unlockAccess()">Unlock Full Access</button>
