@@ -565,26 +565,6 @@ let val=f.raw[symptomCols[i]]?.v||"";
 if(!selected.some(s=>val.includes(s))) return;
 }
 }
-
-if(!isPaidUser){
-
-let msg=document.createElement("div");
-msg.style.marginTop="15px";
-msg.style.padding="10px";
-msg.style.background="#f5f5f5";
-msg.style.borderRadius="8px";
-msg.style.textAlign="center";
-
-msg.innerHTML = `
-<b>Unlock Full Clinical Access</b><br>
-All formula categories available with $10/year access.<br><br>
-<a href="https://buymeacoffee.com/tammylee.drac" target="_blank">
-Support here →
-</a>
-`;
-
-document.getElementById("formula-list").appendChild(msg);
-}
   
 /* 🔥 RANKING SCORE */
 let score=0;
@@ -636,15 +616,50 @@ let cats = Object.keys(grouped);
 
 /* 🔥 MOVE FREE CATEGORIES TO TOP */
 if(!isPaidUser){
-  cats.sort((a,b)=>{
-    let aPriority = freeCategories.includes(a) ? 0 : 1;
-    let bPriority = freeCategories.includes(b) ? 0 : 1;
-    return aPriority - bPriority;
-  });
+cats.sort((a,b)=>{
+
+// 🔥 force Tonify Qi and Yin to the very top (in this order)
+let order = ["T-Tonify Qi","T-Tonify Yin"];
+
+let aIndex = order.indexOf(a);
+let bIndex = order.indexOf(b);
+
+if(aIndex !== -1 || bIndex !== -1){
+  return (aIndex === -1 ? 99 : aIndex) - (bIndex === -1 ? 99 : bIndex);
+}
+
+// 🔒 then apply paywall priority
+if(!isPaidUser){
+  let aPriority = freeCategories.includes(a) ? 0 : 1;
+  let bPriority = freeCategories.includes(b) ? 0 : 1;
+  return aPriority - bPriority;
+ }
+
+  return 0;
+});
 }
 
 cats.forEach(cat=>{
 
+if(!isPaidUser){
+  let msg=document.createElement("div");
+  msg.style.marginTop="15px";
+  msg.style.padding="10px";
+  msg.style.background="#f5f5f5";
+  msg.style.borderRadius="8px";
+  msg.style.textAlign="center";
+
+  msg.innerHTML = `
+  <b>Unlock Full Clinical Access</b><br>
+  All formula categories available with $10/year access.<br><br>
+  <a href="https://buymeacoffee.com/tammylee.drac" target="_blank">
+  Support here →
+  </a>
+  `;
+
+  c.appendChild(msg);
+}
+  
 /* 🔒 PAYWALL */
 if(!isPaidUser && !freeCategories.includes(cat)){
   return;
