@@ -297,6 +297,10 @@ It is no mistake that you ended up here. If this work helps you in learning or c
 <div id="symptom-filters"></div>
 </div>
 
+<div style="display:flex;align-items:flex-end;">
+<button onclick="resetFilters()" style="padding:6px 10px;font-size:10px;height:28px;">
+Reset
+</button>
 </div>
 
 </div>
@@ -306,12 +310,18 @@ Reset Filters
 </button>
   
 <div class="section">
-<h3>
+<div style="display:flex;justify-content:space-between;align-items:center;">
+
+<h3 style="margin:0;">
 Formulas (<span id="formula-count">0</span>)
 </h3>
 
-<input type="text" id="search-bar" placeholder="Search formula..."
-oninput="renderFormulas()" style="width:300px;padding:6px;margin-bottom:10px;">
+<input type="text" id="search-bar"
+placeholder="Search formula..."
+oninput="renderFormulas()"
+style="width:250px;padding:4px;font-size:10px;">
+
+</div>
 
 <div id="formula-list" style="max-height:400px; overflow-y:auto;"></div>
 
@@ -539,61 +549,62 @@ c.appendChild(tag);
 
 /* SYMPTOM FILTERS */
 function buildSymptomFilters(){
-let c=document.getElementById("symptom-filters"); c.innerHTML="";
+let c=document.getElementById("symptom-filters");
+c.innerHTML="";
 
 symptomNames.forEach((name,i)=>{
 
-let wrap=document.createElement("div"); wrap.className="dropdown";
+  let wrap=document.createElement("div");
+  wrap.style.marginBottom="6px";
 
-let btn=document.createElement("button");
-btn.innerText=name;
+  let label=document.createElement("div");
+  label.innerText=name;
+  label.style.fontWeight="bold";
+  label.style.fontSize="10px";
 
-let panel=document.createElement("div");
-panel.className="dropdown-content";
+  wrap.appendChild(label);
 
-btn.onclick=(e)=>{
-e.stopPropagation();
-panel.style.display = panel.style.display==="block" ? "none":"block";
-};
+  let set=new Set();
 
-let set=new Set();
+  formulaData.forEach(f=>{
+    let val=f.raw[symptomCols[i]]?.v;
+    if(val){
+      val.split(",").forEach(v=>set.add(v.trim()));
+    }
+  });
 
-formulaData.forEach(f=>{
-let val=f.raw[symptomCols[i]]?.v;
-if(val){
-val.split(",").forEach(v=>set.add(v.trim()));
+  [...set].sort().forEach(s=>{
+
+    let tag=document.createElement("span");
+    tag.className="tag";
+
+    if(symptomFilters[name]?.includes(s)){
+      tag.classList.add("active");
+    }
+
+    tag.innerText=s;
+
+    tag.onclick=()=>{
+      if(!symptomFilters[name]) symptomFilters[name]=[];
+
+      if(symptomFilters[name].includes(s)){
+        symptomFilters[name]=symptomFilters[name].filter(x=>x!==s);
+      } else {
+        symptomFilters[name].push(s);
+      }
+
+      buildSymptomFilters();
+      renderFormulas();
+    };
+
+    wrap.appendChild(tag);
+  });
+
+  c.appendChild(wrap);
+
+});
 }
-});
-
-[...set].sort().forEach(s=>{
-let label=document.createElement("label");
-let cb=document.createElement("input");
-cb.type="checkbox";
-
-cb.onchange=()=>{
-if(!symptomFilters[name]) symptomFilters[name]=[];
-
-if(cb.checked){
-symptomFilters[name].push(s);
-}else{
-symptomFilters[name]=symptomFilters[name].filter(x=>x!==s);
-}
-renderFormulas();
-};
-
-label.append(cb," "+s);
-panel.append(label,document.createElement("br"));
-});
-
-wrap.append(btn,panel);
-c.appendChild(wrap);
-
-});
-
-document.addEventListener("click",()=>{
-document.querySelectorAll(".dropdown-content").forEach(p=>p.style.display="none");
-});
-}
+  
 
 /* FORMULAS */
 function renderFormulas(){
