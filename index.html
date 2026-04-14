@@ -180,10 +180,10 @@ min-width:180px;
 }
 
 /* 🔥 CLINICAL TOOLBAR */
-/* 🔥 CLINICAL TOOLBAR */
 .toolbar {
 display:flex;
-flex-wrap:wrap;      /* allow wrapping */
+flex-wrap:nowrap;
+overflow-x:auto;
 align-items:flex-start;
 gap:20px;
 }
@@ -308,18 +308,12 @@ It is no mistake that you ended up here. If this work helps you in learning or c
 <div id="symptom-filters"></div>
 </div>
 
-<div style="display:flex;align-items:flex-end;">
-<button onclick="resetFilters()" style="padding:6px 10px;font-size:10px;height:28px;">
+<div style="display:flex;align-items:center;margin-left:10px;">
+<button onclick="resetFilters()" style="padding:4px 8px;font-size:10px;">
 Reset
 </button>
 </div>
-
-</div>
-
-<button onclick="resetFilters()" style="margin-top:10px;">
-Reset Filters
-</button>
-  
+ 
 <div class="section">
 <div style="display:flex;justify-content:space-between;align-items:center;">
 
