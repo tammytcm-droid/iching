@@ -218,11 +218,7 @@ It is no mistake that you ended up here. If this work helps you in learning or c
 <p>
 *** The information on these pages is reference material only and is not a substitute for medical advice.  Users are advised to consult a qualified TCM practitioner before taking herbs.
 </p>
-
-<p>
-Sources - mainly Formulas and Strategies (2nd Ed) (Bensky, at al, 2009), American Dragon (https://www.americandragon.com/), and my collection of notes that have been picked up along the way over the last 15+ years.
-</p>
-  
+ 
 <p>
 [Space for YouTube link or additional notes]
 </p>
@@ -284,9 +280,8 @@ Sources - mainly Formulas and Strategies (2nd Ed) (Bensky, at al, 2009), America
 </div>
 
 <div class="section">
-<h3 onclick="toggleInfo()">Hexagram Info ▼</h3>
-<div id="hex-info"></div>
-</div>
+<h3 onclick="toggleInfo()" id="hex-header">Hexagram Info ▶</h3>
+<div id="hex-info" class="hidden"></div>
 
 <div class="section">
 
@@ -306,6 +301,10 @@ Sources - mainly Formulas and Strategies (2nd Ed) (Bensky, at al, 2009), America
 
 </div>
 
+<button onclick="resetFilters()" style="margin-top:10px;">
+Reset Filters
+</button>
+  
 <div class="section">
 <h3>
 Formulas (<span id="formula-count">0</span>)
@@ -505,7 +504,18 @@ document.getElementById("hex-info").innerText=
 }
 
 function selectHex(t){ currentHex=t; renderInfo(); }
-function toggleInfo(){ document.getElementById("hex-info").classList.toggle("hidden"); }
+function toggleInfo(){
+  let box = document.getElementById("hex-info");
+  let header = document.getElementById("hex-header");
+
+  box.classList.toggle("hidden");
+
+  if(box.classList.contains("hidden")){
+    header.innerText = "Hexagram Info ▶";
+  } else {
+    header.innerText = "Hexagram Info ▼";
+  }
+}
 
 /* MERIDIAN FILTER */
 function renderMeridianFilter(){
