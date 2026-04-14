@@ -201,8 +201,7 @@ Sources - mainly Formulas and Strategies (2nd Ed) (Bensky, at al, 2009), America
 
 <button onclick="resetFilters()">Reset Filters</button>
 <button onclick="randomHexagram()">Random</button>
-<button onclick="resetFilters()">Reset Filters</button>
-<button onclick="randomHexagram()">Random</button>
+<button onclick="unlockAccess()">Unlock Full Access</button>
 
 <!-- KEEP REST OF YOUR LAST WORKING CODE BELOW THIS LINE -->
 
@@ -633,7 +632,18 @@ totalCount++;
 /* 🔥 UPDATE COUNT */
 document.getElementById("formula-count").innerText=totalCount;
 
-Object.keys(grouped).forEach(cat=>{
+let cats = Object.keys(grouped);
+
+/* 🔥 MOVE FREE CATEGORIES TO TOP */
+if(!isPaidUser){
+  cats.sort((a,b)=>{
+    let aPriority = freeCategories.includes(a) ? 0 : 1;
+    let bPriority = freeCategories.includes(b) ? 0 : 1;
+    return aPriority - bPriority;
+  });
+}
+
+cats.forEach(cat=>{
 
 /* 🔒 PAYWALL */
 if(!isPaidUser && !freeCategories.includes(cat)){
