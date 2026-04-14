@@ -171,13 +171,16 @@ z-index:100;
 
 <div class="message-box">
 <p>
-DRAFT - WORKING TO FINALISE - It is no mistake that you ended up here. You are welcome to use this tool.  Enter the pulse in the Original hexagram to find the diagnosis, treatment principle, acupuncture and formula.  Take a quiet moment and do your own pulse too.
+DRAFT - WORKING TO FINALISE - It is no mistake that you ended up here. This tool is designed to help you translate pulse into formulas.  You are welcome to explore the Tonify Qi and Tonify Yin categories.
+
+<p>
+To access teh full clinical tool - including complete formula results, filtering and ranking - a $12/year membership is required. This supports ongoing development.
 </p>
 
 <p>
-If you find it helpful I would love to accept a wonderul coffee each year from you - $10/year.  BMAC or e-transfer me at tammylee.drac@gmail. com.  TIA.
+If this work helps you in learning or clinic, thank you for supporting it.
 </p>
-
+  
 <p>
 *** The information on these pages is reference material only and is not a substitute for medical advice.  Users are advised to consult a qualified TCM practitioner before taking herbs.
 </p>
@@ -634,7 +637,7 @@ cats.forEach(cat=>{
 // 🔥 RENDER
 orderedCats.forEach(cat=>{
 
-  // 🔒 PAYWALL (filter here instead of above)
+  // 🔒 PAYWALL
   if(!isPaidUser && !freeCategories.includes(cat)){
     return;
   }
@@ -670,7 +673,10 @@ orderedCats.forEach(cat=>{
   });
 
   c.append(head,box);
-});
+
+}); // ✅ ONLY ONE closing
+
+} // ✅ end renderFormulas()
 
 /* NAME */
 let name=document.createElement("div");
