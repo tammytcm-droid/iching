@@ -554,54 +554,79 @@ c.innerHTML="";
 
 symptomNames.forEach((name,i)=>{
 
-  let wrap=document.createElement("div");
-  wrap.style.marginBottom="6px";
+let wrap=document.createElement("div");
+wrap.className="dropdown";
 
-  let label=document.createElement("div");
-  label.innerText=name;
-  label.style.fontWeight="bold";
-  label.style.fontSize="10px";
+/* BUTTON */
+let btn=document.createElement("button");
+btn.innerText=name;
+btn.style.fontSize="10px";
+btn.style.padding="4px 6px";
 
-  wrap.appendChild(label);
+/* DROPDOWN PANEL */
+let panel=document.createElement("div");
+panel.className="dropdown-content";
 
-  let set=new Set();
+/* TOGGLE */
+btn.onclick=(e)=>{
+e.stopPropagation();
 
-  formulaData.forEach(f=>{
-    let val=f.raw[symptomCols[i]]?.v;
-    if(val){
-      val.split(",").forEach(v=>set.add(v.trim()));
-    }
-  });
+/* close others first */
+document.querySelectorAll(".dropdown-content").forEach(p=>{
+if(p!==panel) p.style.display="none";
+});
 
-  [...set].sort().forEach(s=>{
+panel.style.display = panel.style.display==="block" ? "none":"block";
+};
 
-    let tag=document.createElement("span");
-    tag.className="tag";
+/* BUILD OPTIONS */
+let set=new Set();
 
-    if(symptomFilters[name]?.includes(s)){
-      tag.classList.add("active");
-    }
+formulaData.forEach(f=>{
+let val=f.raw[symptomCols[i]]?.v;
+if(val){
+val.split(",").forEach(v=>set.add(v.trim()));
+}
+});
 
-    tag.innerText=s;
+[...set].sort().forEach(s=>{
 
-    tag.onclick=()=>{
-      if(!symptomFilters[name]) symptomFilters[name]=[];
+let label=document.createElement("label");
 
-      if(symptomFilters[name].includes(s)){
-        symptomFilters[name]=symptomFilters[name].filter(x=>x!==s);
-      } else {
-        symptomFilters[name].push(s);
-      }
+let cb=document.createElement("input");
+cb.type="checkbox";
 
-      buildSymptomFilters();
-      renderFormulas();
-    };
+/* PRESERVE CHECK STATE */
+if(symptomFilters[name]?.includes(s)){
+cb.checked=true;
+}
 
-    wrap.appendChild(tag);
-  });
+cb.onchange=()=>{
+if(!symptomFilters[name]) symptomFilters[name]=[];
 
-  c.appendChild(wrap);
+if(cb.checked){
+symptomFilters[name].push(s);
+}else{
+symptomFilters[name]=symptomFilters[name].filter(x=>x!==s);
+}
 
+renderFormulas();
+};
+
+label.append(cb," "+s);
+panel.append(label,document.createElement("br"));
+});
+
+wrap.append(btn,panel);
+c.appendChild(wrap);
+
+});
+
+/* CLICK OUTSIDE CLOSES ALL */
+document.addEventListener("click",()=>{
+document.querySelectorAll(".dropdown-content").forEach(p=>{
+p.style.display="none";
+});
 });
 }
   
