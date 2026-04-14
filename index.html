@@ -612,49 +612,65 @@ totalCount++;
 /* 🔥 UPDATE COUNT */
 document.getElementById("formula-count").innerText=totalCount;
 
-// 🔥 FORCE Tonify Qi + Yin to absolute top
+let cats = Object.keys(grouped);
+
+// 🔥 FORCE Tonify categories to top
 let orderedCats = [];
 
-// 1. Add priority categories first (in exact order)
+// 1. Add priority categories FIRST (if they exist)
 ["T-Tonify Qi","T-Tonify Yin"].forEach(cat=>{
-  if(grouped[cat]) orderedCats.push(cat);
+  if(grouped[cat]){
+    orderedCats.push(cat);
+  }
 });
 
-// 2. Add all remaining categories
+// 2. Add everything else
 cats.forEach(cat=>{
   if(!orderedCats.includes(cat)){
     orderedCats.push(cat);
   }
 });
 
-// 3. Apply paywall filter AFTER ordering
-if(!isPaidUser){
-  orderedCats = orderedCats.filter(cat =>
-    freeCategories.includes(cat)
-  );
-}
-
-// 4. Use ordered list instead of cats
+// 🔥 RENDER
 orderedCats.forEach(cat=>{
 
-if(!isPaidUser){
-  let msg=document.createElement("div");
-  msg.style.marginTop="15px";
-  msg.style.padding="10px";
-  msg.style.background="#f5f5f5";
-  msg.style.borderRadius="8px";
-  msg.style.textAlign="center";
+  // 🔒 PAYWALL (filter here instead of above)
+  if(!isPaidUser && !freeCategories.includes(cat)){
+    return;
+  }
 
-  msg.innerHTML = `
-  <b>Unlock Full Clinical Access</b><br>
-  All formula categories available with $10/year access.<br><br>
-  <a href="https://buymeacoffee.com/tammylee.drac" target="_blank">
-  Support here →
-  </a>
-  `;
+  grouped[cat].sort((a,b)=>b.score-a.score);
 
-  c.appendChild(msg);
-}
+  let head=document.createElement("div");
+  head.className="category-header";
+  head.innerText=`${cat} (${grouped[cat].length})`;
+
+  let box=document.createElement("div");
+  box.classList.add("hidden");
+
+  head.onclick=()=>box.classList.toggle("hidden");
+
+  grouped[cat].forEach(f=>{
+
+    let row=document.createElement("div");
+    row.className="formula-row";
+
+    let name=document.createElement("div");
+    name.className="formula-name";
+    name.innerText=`${f.name} (${Math.round(f.mDensity*100)}%)`;
+
+    let tags=document.createElement("div");
+    tags.className="formula-tags";
+    tags.innerText=f.meridians;
+
+    row.append(name,tags);
+    row.onclick=()=>showPopup(f);
+
+    box.appendChild(row);
+  });
+
+  c.append(head,box);
+});
   
 /* 🔒 PAYWALL */
 if(!isPaidUser && !freeCategories.includes(cat)){
