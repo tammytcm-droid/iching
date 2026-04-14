@@ -612,34 +612,30 @@ totalCount++;
 /* 🔥 UPDATE COUNT */
 document.getElementById("formula-count").innerText=totalCount;
 
-let cats = Object.keys(grouped);
+// 🔥 FORCE Tonify Qi + Yin to absolute top
+let orderedCats = [];
 
-/* 🔥 MOVE FREE CATEGORIES TO TOP */
-if(!isPaidUser){
-cats.sort((a,b)=>{
-
-// 🔥 force Tonify Qi and Yin to the very top (in this order)
-let order = ["T-Tonify Qi","T-Tonify Yin"];
-
-let aIndex = order.indexOf(a);
-let bIndex = order.indexOf(b);
-
-if(aIndex !== -1 || bIndex !== -1){
-  return (aIndex === -1 ? 99 : aIndex) - (bIndex === -1 ? 99 : bIndex);
-}
-
-// 🔒 then apply paywall priority
-if(!isPaidUser){
-  let aPriority = freeCategories.includes(a) ? 0 : 1;
-  let bPriority = freeCategories.includes(b) ? 0 : 1;
-  return aPriority - bPriority;
- }
-
-  return 0;
+// 1. Add priority categories first (in exact order)
+["T-Tonify Qi","T-Tonify Yin"].forEach(cat=>{
+  if(grouped[cat]) orderedCats.push(cat);
 });
+
+// 2. Add all remaining categories
+cats.forEach(cat=>{
+  if(!orderedCats.includes(cat)){
+    orderedCats.push(cat);
+  }
+});
+
+// 3. Apply paywall filter AFTER ordering
+if(!isPaidUser){
+  orderedCats = orderedCats.filter(cat =>
+    freeCategories.includes(cat)
+  );
 }
 
-cats.forEach(cat=>{
+// 4. Use ordered list instead of cats
+orderedCats.forEach(cat=>{
 
 if(!isPaidUser){
   let msg=document.createElement("div");
