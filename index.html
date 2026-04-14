@@ -671,28 +671,6 @@ orderedCats.forEach(cat=>{
 
   c.append(head,box);
 });
-  
-/* 🔒 PAYWALL */
-if(!isPaidUser && !freeCategories.includes(cat)){
-  return;
-}
-
-/* SORT BY SCORE */
-grouped[cat].sort((a,b)=>b.score-a.score);
-
-let head=document.createElement("div");
-head.className="category-header";
-head.innerText=`${cat} (${grouped[cat].length})`;
-
-let box=document.createElement("div");
-box.classList.add("hidden");
-
-head.onclick=()=>box.classList.toggle("hidden");
-
-grouped[cat].forEach(f=>{
-
-let row=document.createElement("div");
-row.className="formula-row";
 
 /* NAME */
 let name=document.createElement("div");
