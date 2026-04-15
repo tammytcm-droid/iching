@@ -182,10 +182,9 @@ min-width:180px;
 /* 🔥 CLINICAL TOOLBAR */
 .toolbar {
 display:flex;
-flex-wrap:nowrap;
-overflow-x:auto;
-align-items:flex-start;
-gap:20px;
+flex-wrap:wrap;        /* ✅ allows wrapping */
+align-items:flex-end;  /* aligns reset nicely */
+gap:15px;
 }
 
 .toolbar-block {
@@ -201,6 +200,12 @@ min-width:220px;
 font-size:10px;
 font-weight:bold;
 margin-bottom:4px;
+}
+
+#symptom-filters {
+display:flex;
+flex-wrap:wrap;
+gap:6px;
 }
 
 </style>
