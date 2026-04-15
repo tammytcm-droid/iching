@@ -339,10 +339,31 @@ It is no mistake that you ended up here. If this work helps you in learning or c
 Formulas (<span id="formula-count">0</span>)
 </h3>
 
-<input type="text" id="search-bar"
-placeholder="Search formula..."
-oninput="renderFormulas()"
-style="width:250px;padding:4px;font-size:10px;">
+.search-wrapper {
+  position:relative;
+  display:inline-block;
+}
+
+.search-wrapper input {
+  width:250px;
+  padding:4px 18px 4px 4px; /* extra right padding for X */
+  font-size:10px;
+}
+
+#clear-search {
+  position:absolute;
+  right:4px;
+  top:50%;
+  transform:translateY(-50%);
+  font-size:10px;
+  cursor:pointer;
+  color:#888;
+  display:none; /* hidden until typing */
+}
+
+#clear-search:hover {
+  color:black;
+}
 
 </div>
 
@@ -693,6 +714,25 @@ formulaData.forEach(f=>{
 
 /* SEARCH */
 if(search && !f.name.toLowerCase().includes(search)) return;
+
+function handleSearchInput(){
+  let input = document.getElementById("search-bar");
+  let clearBtn = document.getElementById("clear-search");
+
+  clearBtn.style.display = input.value ? "block" : "none";
+
+  renderFormulas();
+}
+
+function clearSearch(){
+  let input = document.getElementById("search-bar");
+  let clearBtn = document.getElementById("clear-search");
+
+  input.value = "";
+  clearBtn.style.display = "none";
+
+  renderFormulas();
+}
 
 /* MERIDIAN FILTER */
 if(!f.meridians.split(",").some(m=>activeMeridians.includes(m.trim()))) return;
