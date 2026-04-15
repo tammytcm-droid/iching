@@ -725,10 +725,6 @@ function clearSearch(){
   input.value = "";
   clearBtn.style.display = "none";
 
-  renderFormulas();
-}
-  
-/* FORMULAS */
 function renderFormulas(){
 
 let c=document.getElementById("formula-list");
@@ -741,97 +737,82 @@ let totalCount=0;
 
 formulaData.forEach(f=>{
 
-/* 🔥 SEARCH MODE OVERRIDES FILTERS */
-if(search){
- let text = (f.name + " " + f.meridians + " " + f.category).toLowerCase();
-if(!text.includes(search)) return;
-} else {
+  /* 🔥 SEARCH MODE OVERRIDES FILTERS */
+  if(search){
+    let text = (f.name + " " + f.meridians + " " + f.category).toLowerCase();
+    if(!text.includes(search)) return;
+  } else {
 
-  /* MERIDIAN FILTER */
-  if(!f.meridians.split(",").some(m=>activeMeridians.includes(m.trim()))) return;
+    /* MERIDIAN FILTER */
+    if(!f.meridians.split(",").some(m=>activeMeridians.includes(m.trim()))) return;
 
-  /* SYMPTOM FILTER */
+    /* SYMPTOM FILTER */
+    for(let i=0;i<7;i++){
+      let selected=symptomFilters[symptomNames[i]];
+      if(selected?.length){
+        let val=f.raw[symptomCols[i]]?.v||"";
+        if(!selected.some(s=>val.includes(s))) return;
+      }
+    }
+
+  }
+
+  /* 🔥 RANKING SCORE */
+  let score=0;
+
+  let formulaMeridians = f.meridians
+    ? f.meridians.split(",").map(m=>m.trim()).filter(Boolean)
+    : [];
+
+  let matched = formulaMeridians.filter(m =>
+    activeMeridians.includes(m)
+  ).length;
+
+  let density = formulaMeridians.length
+    ? matched / formulaMeridians.length
+    : 0;
+
+  score += density * 10;
+  f.mDensity = density;
+
   for(let i=0;i<7;i++){
     let selected=symptomFilters[symptomNames[i]];
     if(selected?.length){
       let val=f.raw[symptomCols[i]]?.v||"";
-      if(!selected.some(s=>val.includes(s))) return;
+      selected.forEach(s=>{
+        if(val.includes(s)) score+=3;
+      });
     }
   }
 
-}
+  f.score=score;
 
-}
-  
-/* 🔥 RANKING SCORE */
-let score=0;
+  /* GROUP */
+  if(!grouped[f.category]) grouped[f.category]=[];
+  grouped[f.category].push(f);
 
-/* 🔥 MERIDIAN DENSITY (replaces flat scoring) */
+  totalCount++;
 
-let formulaMeridians = f.meridians
-  ? f.meridians.split(",").map(m=>m.trim()).filter(Boolean)
-  : [];
+}); // ✅ loop closes HERE (correct)
 
-let matched = formulaMeridians.filter(m =>
-  activeMeridians.includes(m)
-).length;
-
-let density = formulaMeridians.length
-  ? matched / formulaMeridians.length
-  : 0;
-
-/* scale density to similar weight */
-score += density * 10;
-
-/* (optional: store for debugging/display) */
-f.mDensity = density;
-
-/* Symptom match score */
-for(let i=0;i<7;i++){
-let selected=symptomFilters[symptomNames[i]];
-if(selected?.length){
-let val=f.raw[symptomCols[i]]?.v||"";
-selected.forEach(s=>{
-if(val.includes(s)) score+=3;
-});
-}
-}
-
-f.score=score;
-
-/* GROUP */
-if(!grouped[f.category]) grouped[f.category]=[];
-grouped[f.category].push(f);
-
-totalCount++;
-});
-
-/* 🔥 UPDATE COUNT */
 document.getElementById("formula-count").innerText=totalCount;
 
 let cats = Object.keys(grouped);
 
-// 🔥 FORCE Tonify categories to top
 let orderedCats = [];
 
-// 1. Add priority categories FIRST (if they exist)
 ["T-Tonify Qi","T-Tonify Yin"].forEach(cat=>{
-  if(grouped[cat]){
-    orderedCats.push(cat);
-  }
+  if(grouped[cat]) orderedCats.push(cat);
 });
 
-// 2. Add everything else
 cats.forEach(cat=>{
   if(!orderedCats.includes(cat)){
     orderedCats.push(cat);
   }
 });
 
-// 🔥 RENDER
 orderedCats.forEach(cat=>{
 
-  // 🔒 PAYWALL
   if(!isPaidUser && !freeCategories.includes(cat)){
     return;
   }
@@ -868,9 +849,9 @@ orderedCats.forEach(cat=>{
 
   c.append(head,box);
 
-}); // ✅ ONLY ONE closing
+});
 
-} // ✅ end renderFormulas()
+}
 
 /* POPUP */
 function showPopup(f){
