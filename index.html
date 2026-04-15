@@ -257,7 +257,7 @@ It is no mistake that you ended up here. If this work helps you in learning or c
 </a>
 </div>
  
-<button onclick="resetFilters()">Reset Filters</button>
+<button onclick="resetAll()">Reset All</button>
 <button onclick="randomHexagram()">Random</button>
 <button onclick="unlockAccess()">Unlock Full Access</button>
 
@@ -394,6 +394,19 @@ buildSymptomFilters();
 renderFormulas();
 }
 
+function resetAll(){
+
+  /* reset hexagram */
+  lines = [1,1,1,1,1,1];
+  moving = [false,false,false,false,false,false];
+
+  /* reset filters */
+  resetFilters();
+
+  /* redraw everything */
+  update();
+}
+  
 /* HEXAGRAM LOGIC */
 function getBinary(a){ return a.join(""); }
 function getOutcome(){ return lines.map((v,i)=> moving[i]? (v?0:1):v); }
