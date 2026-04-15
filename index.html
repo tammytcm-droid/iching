@@ -353,9 +353,9 @@ style="width:250px;padding:4px;font-size:10px;">
 </div>
 
 <!-- ABBREVIATIONS -->
-<div class="section">
-<h3>Abbreviations</h3>
-<div id="abbrev-table"></div>
+<div class="section" id="notes-section">
+  <h3>Notes</h3>
+  <div id="abbrev-table"></div>
 </div>
 
 <script>
@@ -903,9 +903,10 @@ if(code === "tcm10"){
 }
 }
   
-loadAbbreviations();
-  
-loadAll();
+window.onload = () => {
+  loadAbbreviations();
+  loadAll();
+};
 
 async function loadAbbreviations(){
 
@@ -940,7 +941,9 @@ tr.appendChild(td);
 table.appendChild(tr);
 });
 
-document.getElementById("abbrev-table").appendChild(table);
+let container = document.getElementById("abbrev-table");
+container.innerHTML = "";   // 🔥 prevents duplicates / stale state
+container.appendChild(table);
 }
   
 </script>
