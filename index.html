@@ -140,6 +140,32 @@ cursor:pointer;
 .formula-name { width:50%; }
 .formula-tags { width:50%; }
 
+.search-wrapper {
+  position:relative;
+  display:inline-block;
+}
+
+.search-wrapper input {
+  width:250px;
+  padding:4px 18px 4px 4px;
+  font-size:10px;
+}
+
+#clear-search {
+  position:absolute;
+  right:4px;
+  top:50%;
+  transform:translateY(-50%);
+  font-size:10px;
+  cursor:pointer;
+  color:#888;
+  display:none;
+}
+
+#clear-search:hover {
+  color:black;
+}
+  
 /* POPUP */
 .popup {
 position:fixed;
@@ -339,31 +365,15 @@ It is no mistake that you ended up here. If this work helps you in learning or c
 Formulas (<span id="formula-count">0</span>)
 </h3>
 
-.search-wrapper {
-  position:relative;
-  display:inline-block;
-}
-
-.search-wrapper input {
-  width:250px;
-  padding:4px 18px 4px 4px; /* extra right padding for X */
-  font-size:10px;
-}
-
-#clear-search {
-  position:absolute;
-  right:4px;
-  top:50%;
-  transform:translateY(-50%);
-  font-size:10px;
-  cursor:pointer;
-  color:#888;
-  display:none; /* hidden until typing */
-}
-
-#clear-search:hover {
-  color:black;
-}
+<div class="search-wrapper">
+  <input 
+    type="text" 
+    id="search-bar"
+    placeholder="Search formula..."
+    oninput="handleSearchInput()"
+  >
+  <span id="clear-search" onclick="clearSearch()">✕</span>
+</div>
 
 </div>
 
@@ -423,7 +433,8 @@ function resetAll(){
 
   /* reset filters */
   resetFilters();
-
+  clearSearch();
+  
   /* redraw everything */
   update();
 }
@@ -698,23 +709,6 @@ p.style.display="none";
 });
 }
   
-
-/* FORMULAS */
-function renderFormulas(){
-
-let c=document.getElementById("formula-list");
-c.innerHTML="";
-
-let search=document.getElementById("search-bar").value.toLowerCase();
-
-let grouped={};
-let totalCount=0;
-
-formulaData.forEach(f=>{
-
-/* SEARCH */
-if(search && !f.name.toLowerCase().includes(search)) return;
-
 function handleSearchInput(){
   let input = document.getElementById("search-bar");
   let clearBtn = document.getElementById("clear-search");
@@ -733,6 +727,22 @@ function clearSearch(){
 
   renderFormulas();
 }
+  
+/* FORMULAS */
+function renderFormulas(){
+
+let c=document.getElementById("formula-list");
+c.innerHTML="";
+
+let search=document.getElementById("search-bar").value.toLowerCase();
+
+let grouped={};
+let totalCount=0;
+
+formulaData.forEach(f=>{
+
+/* SEARCH */
+if(search && !f.name.toLowerCase().includes(search)) return;
 
 /* MERIDIAN FILTER */
 if(!f.meridians.split(",").some(m=>activeMeridians.includes(m.trim()))) return;
