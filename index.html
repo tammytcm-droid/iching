@@ -592,18 +592,16 @@ btn.style.padding="4px 6px";
 /* DROPDOWN PANEL */
 let panel=document.createElement("div");
 panel.className="dropdown-content";
-
+panel.onclick = (e) => e.stopPropagation();
+  
 /* TOGGLE */
-btn.onclick=(e)=>{
-e.stopPropagation();
-
-/* close others first */
-document.querySelectorAll(".dropdown-content").forEach(p=>{
-if(p!==panel) p.style.display="none";
-});
-
-panel.style.display = panel.style.display==="block" ? "none":"block";
+btn.onclick = (e)=>{
+  e.stopPropagation();
+  panel.style.display = panel.style.display==="block" ? "none":"block";
 };
+
+/* 🔥 THIS IS THE KEY ADD */
+panel.onclick = (e)=> e.stopPropagation();
 
 /* BUILD OPTIONS */
 let set=new Set();
