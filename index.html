@@ -184,7 +184,7 @@ min-width:180px;
 .toolbar {
   display:flex;
   flex-wrap:wrap;
-  align-items:flex-start;   /* 🔥 key fix */
+  align-items:flex-end;
   gap:15px;
 }
 
@@ -195,8 +195,6 @@ min-width:220px;
 }
 
 .toolbar-block button {
-  font-size:10px;
-  padding:4px 8px;
   border-radius:6px;
   cursor:pointer;
 }
@@ -319,26 +317,23 @@ It is no mistake that you ended up here. If this work helps you in learning or c
 <!-- FILTER TOOLBAR -->
 <div class="section">
 
-  <div class="toolbar">
+<div class="toolbar">
 
-    <div class="toolbar-block">
-      <div class="toolbar-label">Meridians</div>
-      <div id="meridian-filter"></div>
-    </div>
-
-    <div class="toolbar-block">
-      <div class="toolbar-label">Symptoms</div>
-      <div id="symptom-filters"></div>
-    </div>
-
-    <div class="toolbar-block">
-      <div class="toolbar-label" style="visibility:hidden;">Reset</div>
-      <button onclick="resetFilters()" style="padding:4px 8px;font-size:10px;">
-        Reset
-      </button>
-    </div>
-
+  <div class="toolbar-block">
+    <div class="toolbar-label">Meridians</div>
+    <div id="meridian-filter"></div>
   </div>
+
+  <div class="toolbar-block">
+    <div class="toolbar-label">Symptoms</div>
+    <div id="symptom-filters"></div>
+  </div>
+
+<div class="toolbar-block" style="justify-content:flex-end;">
+  <button onclick="resetFilters()">Reset</button>
+</div>
+
+</div>
 
 </div>
 
