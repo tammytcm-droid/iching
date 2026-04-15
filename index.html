@@ -597,9 +597,19 @@ panel.onclick = (e) => e.stopPropagation();
 /* TOGGLE */
 btn.onclick = (e)=>{
   e.stopPropagation();
-  panel.style.display = panel.style.display==="block" ? "none":"block";
+
+  /* 🔥 CLOSE ALL OTHER DROPDOWNS FIRST */
+  document.querySelectorAll(".dropdown-content").forEach(p=>{
+    if(p !== panel) p.style.display = "none";
+  });
+
+  /* TOGGLE CURRENT */
+  panel.style.display = panel.style.display==="block" ? "none" : "block";
 };
 
+/* 🔥 KEEP DROPDOWN OPEN WHEN CLICKING INSIDE */
+panel.onclick = (e)=> e.stopPropagation();
+  
 /* 🔥 THIS IS THE KEY ADD */
 panel.onclick = (e)=> e.stopPropagation();
 
