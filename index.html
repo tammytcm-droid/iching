@@ -182,14 +182,15 @@ min-width:180px;
 /* 🔥 CLINICAL TOOLBAR */
 .toolbar {
 display:flex;
-flex-wrap:wrap;        /* ✅ allows wrapping */
-align-items:flex-end;  /* aligns reset nicely */
+flex-wrap:wrap;
+align-items:flex-end;   /* 🔥 KEY FIX */
 gap:15px;
 }
 
 .toolbar-block {
 display:flex;
 flex-direction:column;
+justify-content:flex-end;   /* 🔥 aligns content inside each block */
 }
 
 .toolbar-block {
@@ -197,6 +198,7 @@ min-width:220px;
 }
 
 .toolbar-label {
+height:14px;
 font-size:10px;
 font-weight:bold;
 margin-bottom:4px;
@@ -312,8 +314,8 @@ It is no mistake that you ended up here. If this work helps you in learning or c
 </div>
 
 <div class="toolbar-block">
-<div class="toolbar-label">Symptoms</div>
-<div id="symptom-filters"></div>
+  <div class="toolbar-label" style="visibility:hidden;">Reset</div>
+  <button onclick="resetFilters()">Reset</button>
 </div>
 
 <div style="display:flex;align-items:center;margin-left:10px;">
