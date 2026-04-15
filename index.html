@@ -741,17 +741,10 @@ let totalCount=0;
 
 formulaData.forEach(f=>{
 
-/* 🔥 SEARCH MODE (overrides filters) */
+/* 🔥 SEARCH MODE OVERRIDES FILTERS */
 if(search){
-  let text = (
-    f.name + " " +
-    f.category + " " +
-    f.meridians
-  ).toLowerCase();
-
-  if(!text.includes(search)) return;
-}
-
+ let text = (f.name + " " + f.meridians + " " + f.category).toLowerCase();
+if(!text.includes(search)) return;
 } else {
 
   /* MERIDIAN FILTER */
@@ -765,6 +758,8 @@ if(search){
       if(!selected.some(s=>val.includes(s))) return;
     }
   }
+
+}
 
 }
   
