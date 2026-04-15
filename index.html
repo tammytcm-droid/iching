@@ -182,10 +182,10 @@ min-width:180px;
 
 /* 🔥 CLINICAL TOOLBAR */
 .toolbar {
-display:flex;
-flex-wrap:wrap;
-align-items:flex-end;
-gap:15px;
+  display:flex;
+  flex-wrap:wrap;
+  align-items:flex-start;   /* 🔥 key fix */
+  gap:15px;
 }
 
 .toolbar-block {
@@ -194,6 +194,22 @@ flex-direction:column;
 min-width:220px;
 }
 
+.toolbar-block button {
+  font-size:10px;
+  padding:4px 8px;
+  border-radius:6px;
+  cursor:pointer;
+}
+
+.toolbar-block:last-child {
+  justify-content:flex-end;
+}
+
+.toolbar-block:last-child button {
+  background:#eee;
+  border:1px solid #ccc;
+}
+  
 .toolbar-label {
 height:14px;
 font-size:10px;
