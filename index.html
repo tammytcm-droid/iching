@@ -181,29 +181,33 @@ min-width:180px;
 }
 
 /* 🔥 CLINICAL TOOLBAR */
-.toolbar {
+.filter-bar {
   display:flex;
   align-items:center;
+  flex-wrap:wrap;   /* allows wrapping instead of clipping */
   gap:10px;
-  flex-wrap:nowrap;   /* 🔥 force single line */
-  overflow-x:auto;    /* 🔥 prevents breaking on small screens */
 }
 
-/* remove vertical stacking */
-.toolbar-block {
-  display:flex;
-  align-items:center;
-  gap:6px;
-  min-width:auto;
+/* keep dropdowns inline */
+.dropdown {
+  display:inline-block;
+  position:relative;
 }
 
-/* remove labels completely */
-.toolbar-label {
-  display:none;
+/* make sure dropdown panels float ABOVE everything */
+.dropdown-content {
+  position:absolute;
+  z-index:9999;   /* 🔥 prevents clipping */
 }
 
-.toolbar button {
-  margin-left:10px;
+/* reset button style */
+.filter-bar button {
+  padding:4px 8px;
+  font-size:10px;
+  border-radius:6px;
+  border:1px solid #ccc;
+  background:#eee;
+  cursor:pointer;
   white-space:nowrap;
 }
 
@@ -309,7 +313,7 @@ It is no mistake that you ended up here. If this work helps you in learning or c
 <!-- FILTER TOOLBAR -->
 <div class="section">
 
-  <div class="toolbar">
+  <div class="filter-bar">
 
     <!-- Meridians -->
     <div id="meridian-filter"></div>
