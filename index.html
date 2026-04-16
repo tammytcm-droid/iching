@@ -727,8 +727,11 @@ function clearSearch(){
   input.value = "";
   clearBtn.style.display = "none";
 
-function renderFormulas();
+  renderFormulas();  // ✅ this was missing properly
 }
+
+/* FORMULA RENDER */
+function renderFormulas(){
 
 let c=document.getElementById("formula-list");
 c.innerHTML="";
@@ -760,7 +763,7 @@ formulaData.forEach(f=>{
 
   }
 
-  /* 🔥 RANKING SCORE */
+  /* SCORE */
   let score=0;
 
   let formulaMeridians = f.meridians
@@ -790,18 +793,16 @@ formulaData.forEach(f=>{
 
   f.score=score;
 
-  /* GROUP */
   if(!grouped[f.category]) grouped[f.category]=[];
   grouped[f.category].push(f);
 
   totalCount++;
 
-}); // ✅ loop closes HERE (correct)
+});
 
 document.getElementById("formula-count").innerText=totalCount;
 
 let cats = Object.keys(grouped);
-
 let orderedCats = [];
 
 ["T-Tonify Qi","T-Tonify Yin"].forEach(cat=>{
@@ -853,9 +854,8 @@ orderedCats.forEach(cat=>{
   c.append(head,box);
 
 });
-
 }
-
+  
 /* POPUP */
 function showPopup(f){
 let p=document.getElementById("popup");
