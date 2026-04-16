@@ -417,10 +417,15 @@ let isPaidUser = false;
 
 let freeCategories = ["T-Tonify Qi","T-Tonify Yin"];
 
-if(localStorage.getItem("paid")==="yes"){
+/* ✅ ACTIVE MEMBERSHIP YEARS (rolling 3 years) */
+const ACTIVE_YEARS = ["2026","2027","2028"];
+
+/* CHECK USER ACCESS */
+if(ACTIVE_YEARS.includes(localStorage.getItem("paidYear"))){
   isPaidUser = true;
 }
 
+  
 /* RESET */
 function resetFilters(){
 activeMeridians=[...MERIDIANS];
@@ -935,18 +940,27 @@ update();
 
 function unlockAccess(){
 
-let code = prompt("Enter access code:");
+  let code = prompt("Enter access code:");
 
-if(code === "tcm10"){
+  const VALID_CODES = {
+    "tcm10": "2026",
+    "tcm11": "2027",
+    "tcm12": "2028"
+  };
+
+  if(VALID_CODES[code]){
+    
+    let year = VALID_CODES[code];
+
     isPaidUser = true;
-    localStorage.setItem("paid","yes");
+    localStorage.setItem("paidYear", year);
 
-    alert("Full access unlocked");
+    alert("Access unlocked for " + year);
     renderFormulas();
 
-} else {
+  } else {
     alert("Incorrect code");
-}
+  }
 }
   
 window.onload = () => {
