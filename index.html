@@ -140,6 +140,11 @@ cursor:pointer;
 .formula-name { width:50%; }
 .formula-tags { width:50%; }
 
+#formula-list {
+  max-height: 700px;
+  overflow-y: auto;
+}
+  
 .search-wrapper {
   position:relative;
   display:inline-block;
@@ -377,7 +382,7 @@ Formulas (<span id="formula-count">0</span>)
 
 </div>
 
-<div id="formula-list" style="max-height:400px; overflow-y:auto;"></div>
+<div id="formula-list"></div>
 
 <div id="popup" class="popup hidden"></div>
 
