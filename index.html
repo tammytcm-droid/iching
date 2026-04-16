@@ -418,7 +418,7 @@ let isPaidUser = false;
 let freeCategories = ["T-Tonify Qi","T-Tonify Yin"];
 
 /* ✅ ACTIVE MEMBERSHIP YEARS (rolling 3 years) /* CHANGE ACTIVE YEARS HERE <---------------------------- */
-const ACTIVE_YEARS = ["2029","2027","2028"];
+const ACTIVE_YEARS = ["2026","2027","2028"];
 
 /* CHECK USER ACCESS */
 if(ACTIVE_YEARS.includes(localStorage.getItem("paidYear"))){
@@ -945,7 +945,7 @@ function unlockAccess(){
   const VALID_CODES = {
     "tcm11": "2027",
     "tcm12": "2028",
-    "tcm13": "2029"
+    "tcm10": "2026"
   };
 
   if(VALID_CODES[code]){
