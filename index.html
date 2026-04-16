@@ -701,12 +701,14 @@ c.appendChild(wrap);
 
 });
 
-/* CLICK OUTSIDE CLOSES ALL */
-document.addEventListener("click",()=>{
-document.querySelectorAll(".dropdown-content").forEach(p=>{
-p.style.display="none";
-});
-});
+if(!window.dropdownListenerAdded){
+  document.addEventListener("click",()=>{
+    document.querySelectorAll(".dropdown-content").forEach(p=>{
+      p.style.display="none";
+    });
+  });
+  window.dropdownListenerAdded = true;
+}
 }
   
 function handleSearchInput(){
@@ -725,7 +727,8 @@ function clearSearch(){
   input.value = "";
   clearBtn.style.display = "none";
 
-function renderFormulas(){
+function renderFormulas();
+}
 
 let c=document.getElementById("formula-list");
 c.innerHTML="";
