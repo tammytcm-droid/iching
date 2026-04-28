@@ -924,6 +924,7 @@ t=await r.text();
 j=JSON.parse(t.substring(47).slice(0,-2));
 
 headers=j.table.rows[0].c.map(c=>c?.v||"");
+  console.log("HEADERS:", headers);
 
 formulaData=j.table.rows.slice(1).map(r=>({
   raw:r.c,
