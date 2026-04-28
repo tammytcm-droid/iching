@@ -923,12 +923,23 @@ j=JSON.parse(t.substring(47).slice(0,-2));
 
 headers=j.table.rows[0].c.map(c=>c?.v||"");
 
-formulaData=j.table.rows.slice(1).map(r=>({
-raw:r.c,
-name:r.c[0]?.v||"",
-category:r.c[3]?.v||"",
-meridians:r.c[4]?.v||""
-}));
+formulaData = j.table.rows.slice(1).map(r => {
+
+  let cells = r.c || [];
+
+  // 🔥 fill missing cells so indexes don't shift
+  for (let i = 0; i < 30; i++) {
+    if (!cells[i]) cells[i] = { v: "" };
+  }
+
+  return {
+    raw: cells,
+    name: cells[0].v || "",
+    category: (cells[3].v || "").trim(),
+    meridians: cells[4].v || ""
+  };
+
+});
 
 buildSymptomFilters();
 update();
