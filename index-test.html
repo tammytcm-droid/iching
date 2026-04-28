@@ -780,13 +780,13 @@ formulaData.forEach(f=>{
     if(!f.meridians.split(",").some(m=>activeMeridians.includes(m.trim()))) return;
 
     /* SYMPTOM FILTER */
-    for(let i=0;i<7;i++){
-      let selected=symptomFilters[symptomNames[i]];
-      if(selected?.length){
-        let val=f.raw[symptomCols[i]]?.v||"";
-        if(!selected.some(s=>val.includes(s))) return;
-      }
-    }
+ for(let i=0;i<7;i++){
+  let selected = symptomFilters[symptomNames[i]];
+  if(selected?.length){
+    let val = getVal(f.raw, symptomCols[i]) || "";
+    if(!selected.some(s => val.includes(s))) return;
+  }
+}
 
   }
 
