@@ -407,11 +407,10 @@ let headers=[];
 
 let colIndex = {};
 
-function buildColumnMap(headerRow){
-  colIndex = {};
-  headerRow.forEach((h,i)=>{
-    if(h) colIndex[h.trim().toLowerCase()] = i;
-  });
+function getVal(row, colName){
+  let key = colName.toLowerCase().trim();
+  let i = colIndex[key];
+  return i !== undefined ? row.c[i]?.v || "" : "";
 }
 
 function getVal(row, colName){
@@ -780,7 +779,7 @@ formulaData.forEach(f=>{
     if(!f.meridians.split(",").some(m=>activeMeridians.includes(m.trim()))) return;
 
     /* SYMPTOM FILTER */
- for(let i=0;i<7;i++){
+for(let i=0;i<7;i++){
   let selected = symptomFilters[symptomNames[i]];
   if(selected?.length){
     let val = getVal(f.raw, symptomCols[i]) || "";
@@ -937,7 +936,11 @@ r=await fetch(`https://docs.google.com/spreadsheets/d/1aHGUMyg-524vwzfcEcs8JPFeP
 t=await r.text();
 j=JSON.parse(t.substring(47).slice(0,-2));
 
-headers = j.table.rows[0].c.map(c=>c?.v||"");
+let headerRow = j.table.rows.find(r =>
+  r.c.some(c => c?.v && c.v.toLowerCase() === "name")
+);
+
+headers = headerRow.c.map(c=>c?.v||"");
 buildColumnMap(headers);
 
 formulaData = j.table.rows.slice(1).map(r => ({
@@ -946,6 +949,9 @@ formulaData = j.table.rows.slice(1).map(r => ({
   category: getVal(r,"Category"),
   meridians: getVal(r,"Meridians")
 }));
+
+console.log(headers);
+console.log(formulaData.slice(0,5));
 
 buildSymptomFilters();
 update();
