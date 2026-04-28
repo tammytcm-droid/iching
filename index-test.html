@@ -1,3 +1,7 @@
+
+Index (final) v1 Backup
+
+
 <!DOCTYPE html>
 <html>
 <head>
@@ -414,37 +418,41 @@ const symptomCols=[17,18,19,20,21,22,23];
 
 /* 🔒 PAYWALL */
 let isPaidUser = false;
+
 let freeCategories = ["T-Tonify Qi","T-Tonify Yin"];
+
+/* ✅ ACTIVE MEMBERSHIP YEARS (rolling 3 years) /* CHANGE ACTIVE YEARS HERE <---------------------------- */
 const ACTIVE_YEARS = ["2026","2027","2028"];
 
+/* CHECK USER ACCESS */
 if(ACTIVE_YEARS.includes(localStorage.getItem("paidYear"))){
   isPaidUser = true;
 }
 
-/* 🔥 SAFE GVIZ PARSER (CRITICAL FIX) */
-function parseGViz(text){
-  const match = text.match(/google\.visualization\.Query\.setResponse\(([\s\S]*)\);/);
-  if(!match) throw new Error("GViz parse failed");
-  return JSON.parse(match[1]);
-}
-
+  
 /* RESET */
 function resetFilters(){
-  activeMeridians=[...MERIDIANS];
-  symptomFilters={};
-  renderMeridianFilter();
-  buildSymptomFilters();
-  renderFormulas();
+activeMeridians=[...MERIDIANS];
+symptomFilters={};
+renderMeridianFilter();
+buildSymptomFilters();
+renderFormulas();
 }
 
 function resetAll(){
+
+  /* reset hexagram */
   lines = [1,1,1,1,1,1];
   moving = [false,false,false,false,false,false];
+
+  /* reset filters */
   resetFilters();
   clearSearch();
+  
+  /* redraw everything */
   update();
 }
-
+  
 /* HEXAGRAM LOGIC */
 function getBinary(a){ return a.join(""); }
 function getOutcome(){ return lines.map((v,i)=> moving[i]? (v?0:1):v); }
@@ -453,281 +461,555 @@ function findHex(bin){ return hexData.find(h=>h.binary===bin); }
 
 /* DRAW */
 function drawOriginal(hex){
-  let c=document.getElementById("original");
-  c.innerHTML="";
+let c=document.getElementById("original");
+c.innerHTML="";
 
-  for(let i=5;i>=0;i--){
-    let row=document.createElement("div");
-    row.className="row";
+for(let i=5;i>=0;i--){
 
-    let left=document.createElement("div");
-    left.className="marker";
+let row=document.createElement("div");
+row.className="row";
 
-    let circle=document.createElement("div");
-    circle.className="circle";
+/* LEFT MARKER (fixed width) */
+let left=document.createElement("div");
+left.className="marker";
 
-    if(moving[i]) circle.innerText=lines[i] ? "O" : "X";
+let circle=document.createElement("div");
+circle.className="circle";
 
-    circle.onclick=()=>{ moving[i]=!moving[i]; update(); };
-    left.appendChild(circle);
+if(moving[i]) circle.innerText=lines[i] ? "O" : "X";
 
-    let line=document.createElement("div");
-    line.className="line "+(lines[i] ? "yang":"yin");
-    line.onclick=()=>{ lines[i]=lines[i]?0:1; update(); };
+circle.onclick=()=>{
+moving[i]=!moving[i];
+update();
+};
 
-    let right=document.createElement("div");
-    right.className="marker";
+left.appendChild(circle);
 
-    if(hex){
-      if(i+1===hex.subject) right.innerText="S";
-      if(i+1===hex.object) right.innerText="O";
-    }
+/* LINE */
+let line=document.createElement("div");
+line.className="line "+(lines[i] ? "yang":"yin");
 
-    row.append(left,line,right);
-    c.appendChild(row);
-  }
+line.onclick=()=>{
+lines[i]=lines[i]?0:1;
+update();
+};
+
+/* RIGHT MARKER (fixed width) */
+let right=document.createElement("div");
+right.className="marker";
+
+if(hex){
+if(i+1===hex.subject) right.innerText="S";
+if(i+1===hex.object) right.innerText="O";
+}
+
+/* 🔥 FORCE PERFECT ALIGNMENT */
+row.appendChild(left);
+row.appendChild(line);
+row.appendChild(right);
+
+c.appendChild(row);
+}
 }
 
 function drawStatic(id,a){
-  let c=document.getElementById(id);
-  c.innerHTML="";
+let c=document.getElementById(id);
+c.innerHTML="";
 
-  for(let i=5;i>=0;i--){
-    let row=document.createElement("div");
-    row.className="row";
+for(let i=5;i>=0;i--){
 
-    let line=document.createElement("div");
-    line.className="line "+(a[i] ? "yang":"yin");
+let row=document.createElement("div");
+row.className="row";  // 🔥 THIS WAS MISSING
 
-    row.appendChild(line);
-    c.appendChild(row);
-  }
+let line=document.createElement("div");
+line.className="line "+(a[i] ? "yang":"yin");
+
+row.appendChild(line);
+c.appendChild(row);
+}
 }
 
 /* TAGS */
 function renderTags(id,str){
-  let c=document.getElementById(id); c.innerHTML="";
-  if(!str) return;
-  str.split(",").forEach(t=>{
-    let tag=document.createElement("span");
-    tag.className="tag";
-    tag.innerText=t.trim();
-    c.appendChild(tag);
-  });
+let c=document.getElementById(id); c.innerHTML="";
+if(!str) return;
+str.split(",").forEach(t=>{
+let tag=document.createElement("span");
+tag.className="tag";
+tag.innerText=t.trim();
+c.appendChild(tag);
+});
 }
 
 /* UPDATE */
 function update(){
 
-  let orig=findHex(getBinary(lines));
-  let nuc=findHex(getBinary(getNuclear()));
-  let out=findHex(getBinary(getOutcome()));
+let orig=findHex(getBinary(lines));
+let nuc=findHex(getBinary(getNuclear()));
+let out=findHex(getBinary(getOutcome()));
 
-  drawOriginal(orig);
-  drawStatic("nuclear",getNuclear());
-  drawStatic("outcome",getOutcome());
+drawOriginal(orig);
+drawStatic("nuclear",getNuclear());
+drawStatic("outcome",getOutcome());
 
-  renderHex("orig",orig);
-  renderHex("nuc",nuc);
-  renderHex("out",out);
+renderHex("orig",orig);
+renderHex("nuc",nuc);
+renderHex("out",out);
 
-  if(orig){
-    document.getElementById("top-trigram").innerText=orig.top||"";
-    document.getElementById("bottom-trigram").innerText=orig.bottom||"";
-    renderTags("top-tags",orig.topEH);
-    renderTags("bottom-tags",orig.bottomEH);
-  }
+/* TRIGRAMS */
+if(orig){
+document.getElementById("top-trigram").innerText=orig.top||"";
+document.getElementById("bottom-trigram").innerText=orig.bottom||"";
+renderTags("top-tags",orig.topEH);
+renderTags("bottom-tags",orig.bottomEH);
+}
 
-  let m=[];
-  [orig,nuc,out].forEach(h=>{
-    if(h?.meridians){
-      m=m.concat(h.meridians.split(",").map(x=>x.trim()));
-    }
-  });
+/* MERIDIANS AUTO */
+let m=[];
+[orig,nuc,out].forEach(h=>{
+if(h?.meridians){
+m=m.concat(h.meridians.split(",").map(x=>x.trim()));
+}
+});
+activeMeridians=[...new Set(m)];
 
-  activeMeridians = m.length ? [...new Set(m)] : [...MERIDIANS];
-
-  renderMeridianFilter();
-  renderInfo();
-  renderFormulas();
+renderMeridianFilter();
+renderInfo();
+renderFormulas();
 }
 
 /* RENDER HEX */
 function renderHex(p,h){
-  if(!h) return;
-  document.getElementById(p+"-title").innerText=
-  `${h.number} ${h.chinese} ${h.name}\n${h.english}`;
-  renderTags(p+"-tags",h.meridians);
-  document.getElementById(p+"-notes").innerText=h.notes;
+if(!h) return;
+document.getElementById(p+"-title").innerText=
+`${h.number} ${h.chinese} ${h.name}\n${h.english}`;
+renderTags(p+"-tags",h.meridians);
+document.getElementById(p+"-notes").innerText=h.notes;
 }
 
 function renderInfo(){
-  let h=currentHex==="orig"?findHex(getBinary(lines))
-  :currentHex==="nuc"?findHex(getBinary(getNuclear()))
-  :findHex(getBinary(getOutcome()));
+let h=currentHex==="orig"?findHex(getBinary(lines))
+:currentHex==="nuc"?findHex(getBinary(getNuclear()))
+:findHex(getBinary(getOutcome()));
 
-  if(!h) return;
+if(!h) return;
 
-  document.getElementById("hex-info").innerText=
-  `${h.infoS}\n${h.infoT}\n${h.infoU}\n${h.infoV}\n${h.infoW}`;
+document.getElementById("hex-info").innerText=
+`${h.infoS}\n${h.infoT}\n${h.infoU}\n${h.infoV}\n${h.infoW}`;
 }
 
 function selectHex(t){ currentHex=t; renderInfo(); }
+function toggleInfo(){
+  let box = document.getElementById("hex-info");
+  let header = document.getElementById("hex-header");
+
+  box.classList.toggle("hidden");
+
+  if(box.classList.contains("hidden")){
+    header.innerText = "Hexagram Info ▶";
+  } else {
+    header.innerText = "Hexagram Info ▼";
+  }
+}
 
 /* MERIDIAN FILTER */
 function renderMeridianFilter(){
-  let c=document.getElementById("meridian-filter"); c.innerHTML="";
-  MERIDIANS.forEach(m=>{
-    let tag=document.createElement("span");
-    tag.className="tag "+(activeMeridians.includes(m)?"active":"");
-    tag.innerText=m;
-    tag.onclick=()=>{
-      if(activeMeridians.includes(m)){
-        activeMeridians=activeMeridians.filter(x=>x!==m);
-      }else{
-        activeMeridians.push(m);
-      }
-      renderMeridianFilter();
-      renderFormulas();
-    };
-    c.appendChild(tag);
-  });
+let c=document.getElementById("meridian-filter"); c.innerHTML="";
+MERIDIANS.forEach(m=>{
+let tag=document.createElement("span");
+tag.className="tag "+(activeMeridians.includes(m)?"active":"");
+tag.innerText=m;
+tag.onclick=()=>{
+if(activeMeridians.includes(m)){
+activeMeridians=activeMeridians.filter(x=>x!==m);
+}else{
+activeMeridians.push(m);
+}
+renderMeridianFilter();
+renderFormulas();
+};
+c.appendChild(tag);
+});
 }
 
-/* SYMPTOMS */
+/* SYMPTOM FILTERS */
 function buildSymptomFilters(){
-  let c=document.getElementById("symptom-filters");
-  c.innerHTML="";
+let c=document.getElementById("symptom-filters");
+c.innerHTML="";
 
-  symptomNames.forEach((name,i)=>{
+symptomNames.forEach((name,i)=>{
 
-    let wrap=document.createElement("div");
-    wrap.className="dropdown";
+let wrap=document.createElement("div");
+wrap.className="dropdown";
 
-    let btn=document.createElement("button");
-    btn.innerText=name;
+/* BUTTON */
+let btn=document.createElement("button");
+btn.innerText=name;
+btn.style.fontSize="10px";
+btn.style.padding="4px 6px";
 
-    let panel=document.createElement("div");
-    panel.className="dropdown-content";
+/* DROPDOWN PANEL */
+let panel=document.createElement("div");
+panel.className="dropdown-content";
+panel.onclick = (e) => e.stopPropagation();
+  
+/* TOGGLE */
+btn.onclick = (e)=>{
+  e.stopPropagation();
 
-    btn.onclick=(e)=>{
-      e.stopPropagation();
-      panel.style.display = panel.style.display==="block" ? "none" : "block";
-    };
-
-    let set=new Set();
-
-    formulaData.forEach(f=>{
-      let val=(f.raw[symptomCols[i]] && f.raw[symptomCols[i]].v) || "";
-      val.split(",").forEach(v=>{ if(v) set.add(v.trim()); });
-    });
-
-    [...set].sort().forEach(s=>{
-      let label=document.createElement("label");
-      let cb=document.createElement("input");
-      cb.type="checkbox";
-
-      cb.onchange=()=>{
-        if(!symptomFilters[name]) symptomFilters[name]=[];
-        if(cb.checked) symptomFilters[name].push(s);
-        else symptomFilters[name]=symptomFilters[name].filter(x=>x!==s);
-        renderFormulas();
-      };
-
-      label.append(cb," "+s);
-      panel.append(label,document.createElement("br"));
-    });
-
-    wrap.append(btn,panel);
-    c.appendChild(wrap);
+  /* 🔥 CLOSE ALL OTHER DROPDOWNS FIRST */
+  document.querySelectorAll(".dropdown-content").forEach(p=>{
+    if(p !== panel) p.style.display = "none";
   });
+
+  /* TOGGLE CURRENT */
+  panel.style.display = panel.style.display==="block" ? "none" : "block";
+};
+
+/* 🔥 KEEP DROPDOWN OPEN WHEN CLICKING INSIDE */
+panel.onclick = (e)=> e.stopPropagation();
+  
+/* 🔥 THIS IS THE KEY ADD */
+panel.onclick = (e)=> e.stopPropagation();
+
+/* BUILD OPTIONS */
+let set=new Set();
+
+formulaData.forEach(f=>{
+let val=f.raw[symptomCols[i]]?.v;
+if(val){
+val.split(",").forEach(v=>set.add(v.trim()));
+}
+});
+
+[...set].sort().forEach(s=>{
+
+let label=document.createElement("label");
+
+let cb=document.createElement("input");
+cb.type="checkbox";
+
+/* PRESERVE CHECK STATE */
+if(symptomFilters[name]?.includes(s)){
+cb.checked=true;
 }
 
-/* FORMULAS */
+cb.onchange=()=>{
+if(!symptomFilters[name]) symptomFilters[name]=[];
+
+if(cb.checked){
+symptomFilters[name].push(s);
+}else{
+symptomFilters[name]=symptomFilters[name].filter(x=>x!==s);
+}
+
+renderFormulas();
+};
+
+label.append(cb," "+s);
+panel.append(label,document.createElement("br"));
+});
+
+wrap.append(btn,panel);
+c.appendChild(wrap);
+
+});
+
+if(!window.dropdownListenerAdded){
+  document.addEventListener("click",()=>{
+    document.querySelectorAll(".dropdown-content").forEach(p=>{
+      p.style.display="none";
+    });
+  });
+  window.dropdownListenerAdded = true;
+}
+}
+  
+function handleSearchInput(){
+  let input = document.getElementById("search-bar");
+  let clearBtn = document.getElementById("clear-search");
+
+  clearBtn.style.display = input.value ? "block" : "none";
+
+  renderFormulas();
+}
+
+function clearSearch(){
+  let input = document.getElementById("search-bar");
+  let clearBtn = document.getElementById("clear-search");
+
+  input.value = "";
+  clearBtn.style.display = "none";
+
+  renderFormulas();  // ✅ this was missing properly
+}
+
+/* FORMULA RENDER */
 function renderFormulas(){
 
-  let c=document.getElementById("formula-list");
-  c.innerHTML="";
+let c=document.getElementById("formula-list");
+c.innerHTML="";
 
-  let totalCount=0;
-  let grouped={};
+let search=document.getElementById("search-bar").value.toLowerCase();
 
-  formulaData.forEach(f=>{
+let grouped={};
+let totalCount=0;
 
-    if(!f.meridians) return;
+formulaData.forEach(f=>{
 
+  /* 🔥 SEARCH MODE OVERRIDES FILTERS */
+  if(search){
+    let text = (f.name + " " + f.meridians + " " + f.category).toLowerCase();
+    if(!text.includes(search)) return;
+  } else {
+
+    /* MERIDIAN FILTER */
     if(!f.meridians.split(",").some(m=>activeMeridians.includes(m.trim()))) return;
 
-    if(!grouped[f.category]) grouped[f.category]=[];
-    grouped[f.category].push(f);
-    totalCount++;
+    /* SYMPTOM FILTER */
+    for(let i=0;i<7;i++){
+      let selected=symptomFilters[symptomNames[i]];
+      if(selected?.length){
+        let val=f.raw[symptomCols[i]]?.v||"";
+        if(!selected.some(s=>val.includes(s))) return;
+      }
+    }
+
+  }
+
+  /* SCORE */
+  let score=0;
+
+  let formulaMeridians = f.meridians
+    ? f.meridians.split(",").map(m=>m.trim()).filter(Boolean)
+    : [];
+
+  let matched = formulaMeridians.filter(m =>
+    activeMeridians.includes(m)
+  ).length;
+
+  let density = formulaMeridians.length
+    ? matched / formulaMeridians.length
+    : 0;
+
+  score += density * 10;
+  f.mDensity = density;
+
+  for(let i=0;i<7;i++){
+    let selected=symptomFilters[symptomNames[i]];
+    if(selected?.length){
+      let val=f.raw[symptomCols[i]]?.v||"";
+      selected.forEach(s=>{
+        if(val.includes(s)) score+=3;
+      });
+    }
+  }
+
+  f.score=score;
+
+  if(!grouped[f.category]) grouped[f.category]=[];
+  grouped[f.category].push(f);
+
+  totalCount++;
+
+});
+
+document.getElementById("formula-count").innerText=totalCount;
+
+let cats = Object.keys(grouped);
+let orderedCats = [];
+
+["T-Tonify Qi","T-Tonify Yin"].forEach(cat=>{
+  if(grouped[cat]) orderedCats.push(cat);
+});
+
+cats.forEach(cat=>{
+  if(!orderedCats.includes(cat)){
+    orderedCats.push(cat);
+  }
+});
+
+orderedCats.forEach(cat=>{
+
+  if(!isPaidUser && !freeCategories.includes(cat)){
+    return;
+  }
+
+  grouped[cat].sort((a,b)=>b.score-a.score);
+
+  let head=document.createElement("div");
+  head.className="category-header";
+  head.innerText=`${cat} (${grouped[cat].length})`;
+
+  let box=document.createElement("div");
+  box.classList.add("hidden");
+
+  head.onclick=()=>box.classList.toggle("hidden");
+
+  grouped[cat].forEach(f=>{
+
+    let row=document.createElement("div");
+    row.className="formula-row";
+
+    let name=document.createElement("div");
+    name.className="formula-name";
+    name.innerText=`${f.name} (${Math.round(f.mDensity*100)}%)`;
+
+    let tags=document.createElement("div");
+    tags.className="formula-tags";
+    tags.innerText=f.meridians;
+
+    row.append(name,tags);
+    row.onclick=()=>showPopup(f);
+
+    box.appendChild(row);
   });
 
-  console.log("HEX COUNT:", hexData.length);
-  console.log("FORMULA COUNT:", formulaData.length);
+  c.append(head,box);
 
-  document.getElementById("formula-count").innerText=totalCount;
+});
+}
+  
+/* POPUP */
+function showPopup(f){
+let p=document.getElementById("popup");
+p.innerHTML="";
+p.classList.remove("hidden");
 
-  Object.keys(grouped).forEach(cat=>{
+let close=document.createElement("button");
+close.innerText="Close";
+close.style.marginBottom="10px";
+close.onclick=()=>p.classList.add("hidden");
+p.appendChild(close);
 
-    if(!isPaidUser && !freeCategories.includes(cat)) return;
-
-    let head=document.createElement("div");
-    head.className="category-header";
-    head.innerText=`${cat} (${grouped[cat].length})`;
-
-    let box=document.createElement("div");
-    box.classList.add("hidden");
-
-    head.onclick=()=>box.classList.toggle("hidden");
-
-    grouped[cat].forEach(f=>{
-      let row=document.createElement("div");
-      row.className="formula-row";
-      row.innerText=f.name;
-      box.appendChild(row);
-    });
-
-    c.append(head,box);
-  });
+f.raw.slice(0,17).forEach((c,i)=>{
+if(c?.v){
+let d=document.createElement("div");
+d.innerHTML=`<b>${headers[i]}:</b> ${c.v}`;
+p.appendChild(d);
+}
+});
 }
 
 /* LOAD */
 async function loadAll(){
 
-  let r=await fetch(`https://docs.google.com/spreadsheets/d/1eYJ26LpAL3XV9l95-6r4nEvR3m_ksITatkMH4eKxlN4/gviz/tq?tqx=out:json`);
-  let t=await r.text();
-  let j=parseGViz(t);
+let r=await fetch(`https://docs.google.com/spreadsheets/d/1eYJ26LpAL3XV9l95-6r4nEvR3m_ksITatkMH4eKxlN4/gviz/tq?tqx=out:json`);
+let t=await r.text();
+let j=JSON.parse(t.substring(47).slice(0,-2));
 
-  hexData=j.table.rows.map(r=>({
-    number:r.c[0]?.v,
-    binary:String(r.c[1]?.v).padStart(6,"0"),
-    name:r.c[2]?.v,
-    english:r.c[5]?.v,
-    chinese:r.c[6]?.v,
-    meridians:r.c[7]?.v,
-    top:r.c[8]?.v,
-    bottom:r.c[9]?.v,
-    notes:r.c[17]?.v
-  }));
+hexData=j.table.rows.map(r=>({
+number:r.c[0]?.v,
+binary:String(r.c[1]?.v).padStart(6,"0"),
+name:r.c[2]?.v,
+subject:r.c[3]?.v,
+object:r.c[4]?.v,
+english:r.c[5]?.v,
+chinese:r.c[6]?.v,
+meridians:r.c[7]?.v,
+top:r.c[8]?.v,
+bottom:r.c[9]?.v,
+topEH:r.c[10]?.v,
+bottomEH:r.c[11]?.v,
+notes:r.c[17]?.v,
+infoS:r.c[18]?.v,
+infoT:r.c[19]?.v,
+infoU:r.c[20]?.v,
+infoV:r.c[21]?.v,
+infoW:r.c[22]?.v
+}));
 
-  r=await fetch(`https://docs.google.com/spreadsheets/d/1aHGUMyg-524vwzfcEcs8JPFePnbj5Ss06QI7o7T8UqU/gviz/tq?tqx=out:json&gid=282292594`);
-  t=await r.text();
-  j=parseGViz(t);
+r=await fetch(`https://docs.google.com/spreadsheets/d/1mffHNjDUPOcAHybmqiiFZYkyhoQOAyN1k1pmdRJd00k/gviz/tq?tqx=out:json&gid=0`);
+t=await r.text();
+j=JSON.parse(t.substring(47).slice(0,-2));
 
-  formulaData=j.table.rows.slice(1).map(r=>({
-    raw:r.c||[],
-    name:r.c?.[0]?.v || "",
-    category:(r.c?.[3]?.v || "").trim(),
-    meridians:r.c?.[4]?.v || ""
-  }));
+headers=j.table.rows[0].c.map(c=>c?.v||"");
 
-  buildSymptomFilters();
-  update();
+formulaData=j.table.rows.slice(1).map(r=>({
+raw:r.c,
+name:r.c[0]?.v||"",
+category:r.c[3]?.v||"",
+meridians:r.c[4]?.v||""
+}));
+
+buildSymptomFilters();
+update();
 }
 
-window.onload=loadAll;
+function randomHexagram(){
+lines=Array.from({length:6},()=>Math.random()>0.5?1:0);
+moving=Array.from({length:6},()=>Math.random()>0.5);
+update();
+}
 
+function unlockAccess(){
+
+  let code = prompt("Enter access code:"); /* CHANGE VALID CODES HERE <---------------------------- */
+
+  const VALID_CODES = {
+    "tcm11": "2027",
+    "tcm12": "2028",
+    "tcm10": "2026"
+  };
+
+  if(VALID_CODES[code]){
+    
+    let year = VALID_CODES[code];
+
+    isPaidUser = true;
+    localStorage.setItem("paidYear", year);
+
+    alert("Access unlocked for " + year);
+    renderFormulas();
+
+  } else {
+    alert("Incorrect code");
+  }
+}
+  
+window.onload = () => {
+  loadAbbreviations();
+  loadAll();
+};
+
+async function loadAbbreviations(){
+
+let r=await fetch(`https://docs.google.com/spreadsheets/d/1wno0UdDX_jOYT58L0x60ngOg8SyTomynw2X2ZOe3v34/gviz/tq?tqx=out:json&gid=403913474`);
+let t=await r.text();
+let j=JSON.parse(t.substring(47).slice(0,-2));
+
+let rows=j.table.rows;
+
+let table=document.createElement("table");
+table.border="1";
+table.style.width="100%";
+table.style.borderCollapse="collapse";
+
+/* HEADER */
+let headerRow=document.createElement("tr");
+rows[0].c.forEach(c=>{
+let th=document.createElement("th");
+th.innerText=c?.v||"";
+headerRow.appendChild(th);
+});
+table.appendChild(headerRow);
+
+/* DATA */
+rows.slice(1).forEach(r=>{
+let tr=document.createElement("tr");
+r.c.forEach(c=>{
+let td=document.createElement("td");
+td.innerText=c?.v||"";
+tr.appendChild(td);
+});
+table.appendChild(tr);
+});
+
+let container = document.getElementById("abbrev-table");
+container.innerHTML = "";   // 🔥 prevents duplicates / stale state
+container.appendChild(table);
+}
+  
 </script>
 
 </body>
