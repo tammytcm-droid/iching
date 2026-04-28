@@ -929,7 +929,7 @@ headers=j.table.rows[0].c.map(c=>c?.v||"");
 formulaData=j.table.rows.slice(1).map(r=>({
   raw:r.c,
   name:r.c[0]?.v||"",
-  category:r.c[3]?.v||"",
+  category:r.c[0]?.v||"",   // TEMP: force grouping back to name-based fallback
   meridians:r.c[4]?.v||""
 }));
 
