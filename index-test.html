@@ -1,3 +1,7 @@
+
+Index (final) v1 Backup
+
+
 <!DOCTYPE html>
 <html>
 <head>
@@ -759,10 +763,8 @@ formulaData.forEach(f=>{
     if(!text.includes(search)) return;
   } else {
 
-/* MERIDIAN FILTER */
-if(f.meridians){
-  if(!f.meridians.split(",").some(m=>activeMeridians.includes(m.trim()))) return;
-}
+    /* MERIDIAN FILTER */
+    if(!f.meridians.split(",").some(m=>activeMeridians.includes(m.trim()))) return;
 
     /* SYMPTOM FILTER */
     for(let i=0;i<7;i++){
@@ -829,9 +831,9 @@ cats.forEach(cat=>{
 
 orderedCats.forEach(cat=>{
 
-// if(!isPaidUser && !freeCategories.includes(cat)){
-//   return;
-// }
+  if(!isPaidUser && !freeCategories.includes(cat)){
+    return;
+  }
 
   grouped[cat].sort((a,b)=>b.score-a.score);
 
@@ -880,7 +882,7 @@ close.style.marginBottom="10px";
 close.onclick=()=>p.classList.add("hidden");
 p.appendChild(close);
 
-f.raw.forEach((c,i)=>{
+f.raw.slice(0,17).forEach((c,i)=>{
 if(c?.v){
 let d=document.createElement("div");
 d.innerHTML=`<b>${headers[i]}:</b> ${c.v}`;
@@ -921,32 +923,14 @@ r=await fetch(`https://docs.google.com/spreadsheets/d/1aHGUMyg-524vwzfcEcs8JPFeP
 t=await r.text();
 j=JSON.parse(t.substring(47).slice(0,-2));
 
-let headerCells = j.table.rows[0].c || [];
+headers=j.table.rows[0].c.map(c=>c?.v||"");
 
-for (let i = 0; i < 30; i++) {
-  if (!headerCells[i]) headerCells[i] = { v: "" };
-}
-
-headers = headerCells.map(c => c.v || "");
-
-formulaData = j.table.rows.slice(1).map(r => {
-
-  let cells = r.c || [];
-
-  // 🔥 normalize ALL rows to same length
-  let fixed = [];
-  for (let i = 0; i < headers.length; i++) {
-    fixed[i] = cells[i] ? cells[i] : { v: "" };
-  }
-
-  return {
-    raw: fixed,
-    name: fixed[0].v || "",
-    category: (fixed[3].v || "").trim(),
-    meridians: fixed[4].v || ""
-  };
-
-});
+formulaData=j.table.rows.slice(1).map(r=>({
+raw:r.c,
+name:r.c[0]?.v||"",
+category:r.c[3]?.v||"",
+meridians:r.c[4]?.v||""
+}));
 
 buildSymptomFilters();
 update();
