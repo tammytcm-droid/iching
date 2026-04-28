@@ -417,7 +417,8 @@ let isPaidUser = false;
 
 let freeCategories = ["T-Tonify Qi","T-Tonify Yin"];
 
-/* ✅ ACTIVE MEMBERSHIP YEARS (rolling 3 years) /* CHANGE ACTIVE YEARS HERE <---------------------------- */
+/* ✅ ACTIVE MEMBERSHIP YEARS (rolling 3 years) -----------------------------------------------------------------------*/
+// CHANGE ACTIVE YEARS HERE
 const ACTIVE_YEARS = ["2026","2027","2028"];
 
 /* CHECK USER ACCESS */
@@ -792,7 +793,7 @@ formulaData.forEach(f=>{
   for(let i=0;i<7;i++){
     let selected=symptomFilters[symptomNames[i]];
     if(selected?.length){
-      let val=f.raw[symptomCols[i]]?.v||"";
+      let val = (f.raw[symptomCols[i]] && f.raw[symptomCols[i]].v) || "";
       selected.forEach(s=>{
         if(val.includes(s)) score+=3;
       });
