@@ -923,25 +923,13 @@ r=await fetch(`https://docs.google.com/spreadsheets/d/1mffHNjDUPOcAHybmqiiFZYkyh
 t=await r.text();
 j=JSON.parse(t.substring(47).slice(0,-2));
 
-headers = j.table.rows[0].c.map(c => c?.v?.trim() || "");
+headers=j.table.rows[0].c.map(c=>c?.v||"");
 
-/* 🔥 COLUMN LOOKUP */
-let colIndex = {};
-headers.forEach((h, i) => {
-  colIndex[h] = i;
-});
-
-/* 🔥 SAFE CELL READER */
-function getVal(row, colName){
-  return row.c[colIndex[colName]]?.v?.toString().trim() || "";
-}
-
-/* 🔥 BUILD DATA SAFELY */
-formulaData = j.table.rows.slice(1).map(r => ({
-  raw: r.c,
-  name: getVal(r, "Name"),
-  category: getVal(r, "Category"),
-  meridians: getVal(r, "Meridians")
+formulaData=j.table.rows.slice(1).map(r=>({
+  raw:r.c,
+  name:r.c[0]?.v||"",
+  category:r.c[3]?.v||"",
+  meridians:r.c[4]?.v||""
 }));
 
 buildSymptomFilters();
