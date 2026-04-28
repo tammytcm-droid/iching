@@ -669,14 +669,12 @@ btn.onclick = (e)=>{
 /* 🔥 KEEP DROPDOWN OPEN WHEN CLICKING INSIDE */
 panel.onclick = (e)=> e.stopPropagation();
   
-/* 🔥 THIS IS THE KEY ADD */
-panel.onclick = (e)=> e.stopPropagation();
 
 /* BUILD OPTIONS */
 let set=new Set();
 
 formulaData.forEach(f=>{
-let val=f.raw[symptomCols[i]]?.v;
+let val = (f.raw[symptomCols[i]] && f.raw[symptomCols[i]].v) || "";
 if(val){
 val.split(",").forEach(v=>set.add(v.trim()));
 }
@@ -770,7 +768,7 @@ formulaData.forEach(f=>{
     for(let i=0;i<7;i++){
       let selected=symptomFilters[symptomNames[i]];
       if(selected?.length){
-        let val=f.raw[symptomCols[i]]?.v||"";
+      let val = (f.raw[symptomCols[i]] && f.raw[symptomCols[i]].v) || "";
         if(!selected.some(s=>val.includes(s))) return;
       }
     }
@@ -884,17 +882,22 @@ p.appendChild(close);
 
 f.raw.slice(0,17).forEach((c,i)=>{
 if(c?.v){
-let d=document.createElement("div");
-d.innerText = headers[i] + ": " + c.v;
-p.appendChild(d);
 
-let label = document.createElement("b");
+let d=document.createElement("div");
+
+/* ✅ label (bold only label) */
+let label=document.createElement("b");
 label.innerText = headers[i] + ": ";
 
-let text = document.createTextNode(c.v);
+/* ✅ value (normal text) */
+let text=document.createTextNode(c.v);
 
-d.append(label, text);
-  
+/* ✅ append in correct order */
+d.appendChild(label);
+d.appendChild(text);
+
+p.appendChild(d);
+
 }
 });
 }
