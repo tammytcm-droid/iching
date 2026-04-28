@@ -880,7 +880,7 @@ close.style.marginBottom="10px";
 close.onclick=()=>p.classList.add("hidden");
 p.appendChild(close);
 
-f.raw.slice(0,17).forEach((c,i)=>{
+f.raw.forEach((c,i)=>{
 if(c?.v){
 let d=document.createElement("div");
 d.innerHTML=`<b>${headers[i]}:</b> ${c.v}`;
@@ -921,22 +921,29 @@ r=await fetch(`https://docs.google.com/spreadsheets/d/1aHGUMyg-524vwzfcEcs8JPFeP
 t=await r.text();
 j=JSON.parse(t.substring(47).slice(0,-2));
 
-headers=j.table.rows[0].c.map(c=>c?.v||"");
+let headerCells = j.table.rows[0].c || [];
+
+for (let i = 0; i < 30; i++) {
+  if (!headerCells[i]) headerCells[i] = { v: "" };
+}
+
+headers = headerCells.map(c => c.v || "");
 
 formulaData = j.table.rows.slice(1).map(r => {
 
   let cells = r.c || [];
 
-  // 🔥 fill missing cells so indexes don't shift
-  for (let i = 0; i < 30; i++) {
-    if (!cells[i]) cells[i] = { v: "" };
+  // 🔥 normalize ALL rows to same length
+  let fixed = [];
+  for (let i = 0; i < headers.length; i++) {
+    fixed[i] = cells[i] ? cells[i] : { v: "" };
   }
 
   return {
-    raw: cells,
-    name: cells[0].v || "",
-    category: (cells[3].v || "").trim(),
-    meridians: cells[4].v || ""
+    raw: fixed,
+    name: fixed[0].v || "",
+    category: (fixed[3].v || "").trim(),
+    meridians: fixed[4].v || ""
   };
 
 });
