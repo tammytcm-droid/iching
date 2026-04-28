@@ -405,28 +405,12 @@ let hexData=[];
 let formulaData=[];
 let headers=[];
 
-let colIndex = {};
-
-function getVal(row, colName){
-  let key = colName.toLowerCase().trim();
-  let i = colIndex[key];
-  return i !== undefined ? row.c[i]?.v || "" : "";
-}
-
-function getVal(row, colName){
-  let i = colIndex[colName.toLowerCase()];
-  return i !== undefined ? row.c[i]?.v || "" : "";
-}
-
 let activeMeridians=[];
 let symptomFilters={};
 
 const MERIDIANS=["LU","LI","ST","SP","HT","SI","UB","KD","PC","TW","GB","LV"];
 const symptomNames=["Line 1","Line 2","Line 3","Line 4","Line 5","Line 6","General"];
-const symptomCols = [
-  "Line 1","Line 2","Line 3",
-  "Line 4","Line 5","Line 6","General"
-];
+const symptomCols=[17,18,19,20,21,22,23];
 
 /* 🔒 PAYWALL */
 let isPaidUser = false;
@@ -688,7 +672,7 @@ panel.onclick = (e)=> e.stopPropagation();
 let set=new Set();
 
 formulaData.forEach(f=>{
-let val = getVal(f.raw, symptomCols[i]);
+let val=f.raw[symptomCols[i]]?.v;
 if(val){
 val.split(",").forEach(v=>set.add(v.trim()));
 }
@@ -779,13 +763,13 @@ formulaData.forEach(f=>{
     if(!f.meridians.split(",").some(m=>activeMeridians.includes(m.trim()))) return;
 
     /* SYMPTOM FILTER */
-for(let i=0;i<7;i++){
-  let selected = symptomFilters[symptomNames[i]];
-  if(selected?.length){
-    let val = getVal(f.raw, symptomCols[i]) || "";
-    if(!selected.some(s => val.includes(s))) return;
-  }
-}
+    for(let i=0;i<7;i++){
+      let selected=symptomFilters[symptomNames[i]];
+      if(selected?.length){
+        let val=f.raw[symptomCols[i]]?.v||"";
+        if(!selected.some(s=>val.includes(s))) return;
+      }
+    }
 
   }
 
@@ -810,7 +794,7 @@ for(let i=0;i<7;i++){
   for(let i=0;i<7;i++){
     let selected=symptomFilters[symptomNames[i]];
     if(selected?.length){
-     let val = getVal(f.raw, symptomCols[i]) || "";
+      let val=f.raw[symptomCols[i]]?.v||"";
       selected.forEach(s=>{
         if(val.includes(s)) score+=3;
       });
@@ -894,11 +878,10 @@ close.style.marginBottom="10px";
 close.onclick=()=>p.classList.add("hidden");
 p.appendChild(close);
 
-headers.forEach(h=>{
-  let val = getVal(f.raw, h);
-  if(val){
+f.raw.slice(0,17).forEach((c,i)=>{
+if(c?.v){
 let d=document.createElement("div");
-d.innerHTML=`<b>${h}:</b> ${val}`;
+d.innerHTML=`<b>${headers[i]}:</b> ${c.v}`;
 p.appendChild(d);
 }
 });
@@ -936,22 +919,14 @@ r=await fetch(`https://docs.google.com/spreadsheets/d/1aHGUMyg-524vwzfcEcs8JPFeP
 t=await r.text();
 j=JSON.parse(t.substring(47).slice(0,-2));
 
-let headerRow = j.table.rows.find(r =>
-  r.c.some(c => c?.v && c.v.toLowerCase() === "name")
-);
+headers=j.table.rows[0].c.map(c=>c?.v||"");
 
-headers = headerRow.c.map(c=>c?.v||"");
-buildColumnMap(headers);
-
-formulaData = j.table.rows.slice(1).map(r => ({
-  raw: r,
-  name: getVal(r,"Name"),
-  category: getVal(r,"Category"),
-  meridians: getVal(r,"Meridians")
+formulaData=j.table.rows.slice(1).map(r=>({
+raw:r.c,
+name:r.c[0]?.v||"",
+category:r.c[3]?.v||"",
+meridians:r.c[4]?.v||""
 }));
-
-console.log(headers);
-console.log(formulaData.slice(0,5));
 
 buildSymptomFilters();
 update();
@@ -1035,3 +1010,4 @@ container.appendChild(table);
 
 </body>
 </html>
+
