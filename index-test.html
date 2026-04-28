@@ -885,8 +885,16 @@ p.appendChild(close);
 f.raw.slice(0,17).forEach((c,i)=>{
 if(c?.v){
 let d=document.createElement("div");
-d.innerHTML=`<b>${headers[i]}:</b> ${c.v}`;
+d.innerText = headers[i] + ": " + c.v;
 p.appendChild(d);
+
+let label = document.createElement("b");
+label.innerText = headers[i] + ": ";
+
+let text = document.createTextNode(c.v);
+
+d.append(label, text);
+  
 }
 });
 }
@@ -923,14 +931,31 @@ r=await fetch(`https://docs.google.com/spreadsheets/d/1aHGUMyg-524vwzfcEcs8JPFeP
 t=await r.text();
 j=JSON.parse(t.substring(47).slice(0,-2));
 
-headers=j.table.rows[0].c.map(c=>c?.v||"");
+let headerRow = j.table.rows[0].c || [];
 
-formulaData=j.table.rows.slice(1).map(r=>({
-raw:r.c,
-name:r.c[0]?.v||"",
-category:r.c[3]?.v||"",
-meridians:r.c[4]?.v||""
-}));
+for(let i=0;i<25;i++){
+  if(!headerRow[i]) headerRow[i] = { v:"" };
+}
+
+headers = headerRow.map(c => c.v || "");
+
+formulaData=j.table.rows.slice(1).map(r=>{
+
+let row = r.c || [];
+
+// 🔥 force missing cells to exist
+for(let i=0;i<25;i++){
+  if(!row[i]) row[i] = { v:"" };
+}
+
+return {
+  raw: row,
+  name: row[0].v || "",
+  category: (row[3].v || "").trim(),
+  meridians: row[4].v || ""
+};
+
+});
 
 buildSymptomFilters();
 update();
