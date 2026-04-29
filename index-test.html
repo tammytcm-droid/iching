@@ -763,7 +763,7 @@ formulaData.forEach(f=>{
     if(!text.includes(search)) return;
   } else {
 
-    /* MERIDIAN FILTER */
+    
    /* MERIDIAN FILTER */
 if(f.meridians && f.meridians.trim() !== ""){
   if(!f.meridians.split(",").some(m=>activeMeridians.includes(m.trim()))) return;
@@ -773,11 +773,7 @@ if(f.meridians && f.meridians.trim() !== ""){
 for(let i=0;i<7;i++){
   let selected=symptomFilters[symptomNames[i]];
   if(selected?.length){
-    let val = f.raw[symptomCols[i]]?.v || "";
-    
-    // 🔥 NEW: skip filter if column is missing
-    if(!val) continue;
-
+    let val=f.raw[symptomCols[i]]?.v||"";
     if(!selected.some(s=>val.includes(s))) return;
   }
 }
@@ -935,10 +931,10 @@ headers=j.table.rows[0].c.map(c=>c?.v||"");
 
 formulaData = j.table.rows.slice(1).map(r => ({
   raw: r.c,
-  name: r.c[0]?.v || "",          // Da Chai Hu Tang
+  name: r.c[0]?.v || "",
   chinese: r.c[1]?.v || "",
   english: r.c[2]?.v || "",
-  category: r.c[3]?.v || "",      // RE-IntDef (NOT display category)
+  category: r.c[3]?.v || "",
   meridians: r.c[4]?.v || ""
 }));
 
