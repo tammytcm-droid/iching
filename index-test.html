@@ -925,13 +925,24 @@ j=JSON.parse(t.substring(47).slice(0,-2));
 
 headers=j.table.rows[0].c.map(c=>c?.v||"");
 
-formulaData=j.table.rows.slice(1).map(r=>({
-raw:r.c,
-name:r.c[0]?.v||"",
-category:r.c[3]?.v||"",
-meridians:r.c[4]?.v||""
-}));
+// 🔥 MAP HEADERS TO INDEX (SAFE SYSTEM)
+let colIndex = {};
+headers.forEach((h, i) => {
+  if(h) colIndex[h.trim()] = i;
+});
 
+formulaData = j.table.rows.slice(1).map(r => ({
+
+  raw: r.c,
+
+  // ✅ correct columns based on YOUR sheet
+  name: r.c[colIndex["Name"]]?.v || "",
+
+  category: r.c[colIndex["Sub Category"]]?.v || "",
+
+  meridians: r.c[colIndex["Meridians"]]?.v || ""
+
+}));
 buildSymptomFilters();
 update();
 }
