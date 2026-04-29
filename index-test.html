@@ -925,16 +925,15 @@ j=JSON.parse(t.substring(47).slice(0,-2));
 
 headers=j.table.rows[0].c.map(c=>c?.v||"");
 
-formulaData = j.table.rows.slice(1).map(r => ({
+formulaData = j.table.rows
+  .filter(r => r.c && r.c[0] && r.c[0].v) // 🔥 only keep real rows
+  .map(r => ({
 
-  raw: r.c,
+    raw: r.c,
 
-  // 🔥 HARD MAP (guaranteed to work)
-  name: r.c[0]?.v || "",
-
-  category: r.c[3]?.v || "",
-
-  meridians: r.c[4]?.v || ""
+    name: r.c[0]?.v || "",
+    category: r.c[3]?.v || "",
+    meridians: r.c[4]?.v || ""
 
 }));
 
