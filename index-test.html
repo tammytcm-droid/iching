@@ -769,16 +769,18 @@ if(f.meridians && f.meridians.trim() !== ""){
   if(!f.meridians.split(",").some(m=>activeMeridians.includes(m.trim()))) return;
 }
 
-    /* SYMPTOM FILTER */
-    for(let i=0;i<7;i++){
-      let selected=symptomFilters[symptomNames[i]];
-      if(selected?.length){
-        let val=f.raw[symptomCols[i]]?.v||"";
-        if(!selected.some(s=>val.includes(s))) return;
-      }
-    }
+/* SYMPTOM FILTER */
+for(let i=0;i<7;i++){
+  let selected=symptomFilters[symptomNames[i]];
+  if(selected?.length){
+    let val = f.raw[symptomCols[i]]?.v || "";
+    
+    // 🔥 NEW: skip filter if column is missing
+    if(!val) continue;
 
+    if(!selected.some(s=>val.includes(s))) return;
   }
+}
 
   /* SCORE */
   let score=0;
