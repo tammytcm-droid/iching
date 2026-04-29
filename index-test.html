@@ -763,20 +763,19 @@ formulaData.forEach(f=>{
     if(!text.includes(search)) return;
   } else {
 
-    
-   /* MERIDIAN FILTER */
-if(f.meridians && f.meridians.trim() !== ""){
-  if(!f.meridians.split(",").some(m=>activeMeridians.includes(m.trim()))) return;
-}
+    /* MERIDIAN FILTER */
+    if(!f.meridians.split(",").some(m=>activeMeridians.includes(m.trim()))) return;
 
-/* SYMPTOM FILTER */
-for(let i=0;i<7;i++){
-  let selected=symptomFilters[symptomNames[i]];
-  if(selected?.length){
-    let val=f.raw[symptomCols[i]]?.v||"";
-    if(!selected.some(s=>val.includes(s))) return;
+    /* SYMPTOM FILTER */
+    for(let i=0;i<7;i++){
+      let selected=symptomFilters[symptomNames[i]];
+      if(selected?.length){
+        let val=f.raw[symptomCols[i]]?.v||"";
+        if(!selected.some(s=>val.includes(s))) return;
+      }
+    }
+
   }
-}
 
   /* SCORE */
   let score=0;
@@ -808,10 +807,8 @@ for(let i=0;i<7;i++){
 
   f.score=score;
 
-let cat = f.category || "Uncategorized";
-
-if(!grouped[cat]) grouped[cat]=[];
-grouped[cat].push(f);
+  if(!grouped[f.category]) grouped[f.category]=[];
+  grouped[f.category].push(f);
 
   totalCount++;
 
@@ -927,15 +924,12 @@ t=await r.text();
 j=JSON.parse(t.substring(47).slice(0,-2));
 
 headers=j.table.rows[0].c.map(c=>c?.v||"");
-  console.log("HEADERS:", headers);
 
-formulaData = j.table.rows.slice(1).map(r => ({
-  raw: r.c,
-  name: r.c[0]?.v || "",
-  chinese: r.c[1]?.v || "",
-  english: r.c[2]?.v || "",
-  category: r.c[3]?.v || "",
-  meridians: r.c[4]?.v || ""
+formulaData=j.table.rows.slice(1).map(r=>({
+raw:r.c,
+name:r.c[0]?.v||"",
+category:r.c[3]?.v||"",
+meridians:r.c[4]?.v||""
 }));
 
 buildSymptomFilters();
