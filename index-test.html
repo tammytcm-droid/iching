@@ -764,7 +764,10 @@ formulaData.forEach(f=>{
   } else {
 
     /* MERIDIAN FILTER */
-    if(!f.meridians.split(",").some(m=>activeMeridians.includes(m.trim()))) return;
+   /* MERIDIAN FILTER */
+if(f.meridians && f.meridians.trim() !== ""){
+  if(!f.meridians.split(",").some(m=>activeMeridians.includes(m.trim()))) return;
+}
 
     /* SYMPTOM FILTER */
     for(let i=0;i<7;i++){
