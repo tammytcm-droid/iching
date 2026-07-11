@@ -984,12 +984,17 @@ let table=document.createElement("table");
 table.border="1";
 table.style.width="100%";
 table.style.borderCollapse="collapse";
+table.style.fontSize="11px";
+table.style.lineHeight="1.0";
 
 /* HEADER */
 let headerRow=document.createElement("tr");
 rows[0].c.forEach(c=>{
 let th=document.createElement("th");
 th.innerText=c?.v||"";
+th.style.padding="2px 4px";
+th.style.fontSize="11px";
+th.style.lineHeight="1.0";
 headerRow.appendChild(th);
 });
 table.appendChild(headerRow);
@@ -1000,6 +1005,10 @@ let tr=document.createElement("tr");
 r.c.forEach(c=>{
 let td=document.createElement("td");
 td.innerText=c?.v||"";
+td.style.padding="2px 4px";
+td.style.fontSize="11px";
+td.style.lineHeight="1.0";
+td.style.verticalAlign="top";
 tr.appendChild(td);
 });
 table.appendChild(tr);
