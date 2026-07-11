@@ -987,20 +987,8 @@ table.style.borderCollapse="collapse";
 table.style.fontSize="11px";
 table.style.lineHeight="1.0";
 
-/* HEADER */
-let headerRow=document.createElement("tr");
-rows[0].c.forEach(c=>{
-let th=document.createElement("th");
-th.innerText=c?.v||"";
-th.style.padding="2px 4px";
-th.style.fontSize="11px";
-th.style.lineHeight="1.0";
-headerRow.appendChild(th);
-});
-table.appendChild(headerRow);
-
 /* DATA */
-rows.slice(1).forEach(r=>{
+rows.forEach(r=>{
 let tr=document.createElement("tr");
 r.c.forEach(c=>{
 let td=document.createElement("td");
